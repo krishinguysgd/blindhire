@@ -202,6 +202,7 @@ Set `DEMO_SEED=some-unique-label` when you want reproducible seeded metadata. Wi
 
 ## coming soon 
 
+
 These are the issues and missing pieces to handle in the next development wave.
 
 - Finish production Vercel deployment validation with clean package-manager settings, production env sync, and deployed-page browser smoke tests.
