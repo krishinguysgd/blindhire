@@ -200,7 +200,7 @@ Set `DEMO_SEED=some-unique-label` when you want reproducible seeded metadata. Wi
 8. Candidate approves reveal.
 9. Recruiter sees the selected identity metadata.
 
-## Wave 5 - Next Fixes And Missing Features
+## coming soon 
 
 These are the issues and missing pieces to handle in the next development wave.
 
