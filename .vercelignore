@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.secret
+credentials.*
+*.credentials.*
+secrets.*
+/secrets/
+
+.next/
+artifacts/
+cache/
+screenshots/

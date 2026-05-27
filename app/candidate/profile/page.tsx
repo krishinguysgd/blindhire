@@ -2,13 +2,14 @@
 
 import { useCallback, useState } from "react";
 import { Send } from "lucide-react";
-import { keccak256, toBytes } from "viem";
 import { ActionLog } from "@/components/action-log";
 import { ChainStatus } from "@/components/chain-status";
 import { Field, TextArea, TextInput } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { asUint32, encodeMetadata, splitList } from "@/lib/metadata";
+import { asPositiveBigInt, asUint32, inputErrorMessage, splitList } from "@/lib/metadata";
+import { prepareMetadata } from "@/lib/pinning";
+import { identityCommitment, identitySalt } from "@/lib/storage";
 import { useBlindHire } from "@/lib/use-blindhire";
 
 const defaults = {
@@ -25,7 +26,11 @@ const defaults = {
   identityEmail: "rahul@example.com",
   identityLocation: "Bengaluru, India",
   identityPortfolio: "https://portfolio.example.com",
+  identityNote: "Open to senior protocol frontend roles.",
   identitySecret: "blindhire-demo-secret",
+  identityUri: "",
+  existingCandidateId: "1",
+  profileUri: "",
 };
 
 export default function CandidateProfilePage() {
@@ -39,49 +44,93 @@ export default function CandidateProfilePage() {
   const createProfile = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!chain.ready) {
-      await chain.connect();
-      addLog("Wallet connected. Submit again to encrypt and send the profile transaction.");
+      if (await chain.connect()) addLog("Wallet connected. Submit again to encrypt and send the profile transaction.");
+      return;
+    }
+
+    let privateValues: bigint[];
+    try {
+      const salaryMin = asUint32(form.salaryMin, "Private salary minimum");
+      const salaryMax = asUint32(form.salaryMax, "Private salary maximum");
+      if (salaryMin > salaryMax) throw new Error("Private salary minimum must be less than or equal to maximum.");
+      privateValues = [
+        asUint32(form.skillScore, "Private skill score", { max: 100n }),
+        asUint32(form.experienceYears, "Private years"),
+        salaryMin,
+        salaryMax,
+      ];
+    } catch (error) {
+      addLog(inputErrorMessage(error));
       return;
     }
 
     addLog("Encrypting private candidate values.");
-    const encrypted = await chain.encryptUint32(
-      [asUint32(form.skillScore), asUint32(form.experienceYears), asUint32(form.salaryMin), asUint32(form.salaryMax)],
-      addLog,
+    const encrypted = await chain.encryptUint32(privateValues, addLog);
+    const committedIdentityURI = await prepareMetadata(
+      {
+        kind: "identity",
+        name: form.identityName,
+        email: form.identityEmail,
+        location: form.identityLocation,
+        portfolio: form.identityPortfolio,
+        note: form.identityNote,
+      },
+      { externalUri: form.identityUri, label: "identity metadata", onStatus: addLog },
     );
-    const identityCommitment = keccak256(
-      toBytes(`${form.identityName}|${form.identityEmail}|${form.identityLocation}|${form.identitySecret}`),
+    const committedIdentitySalt = identitySalt(form.identitySecret);
+    const commitment = identityCommitment(committedIdentityURI, committedIdentitySalt);
+    const anonymousProfileURI = await prepareMetadata(
+      {
+        kind: "candidate",
+        alias: form.alias,
+        role: form.role,
+        headline: form.headline,
+        skills: splitList(form.skills),
+        projects: splitList(form.projects),
+      },
+      { externalUri: form.profileUri, label: "anonymous profile metadata", onStatus: addLog },
     );
-    const anonymousProfileURI = encodeMetadata({
-      kind: "candidate",
-      alias: form.alias,
-      role: form.role,
-      headline: form.headline,
-      skills: splitList(form.skills),
-      projects: splitList(form.projects),
-    });
 
     await chain.writeContract("createCandidate", [
       anonymousProfileURI,
-      identityCommitment,
+      commitment,
       encrypted[0],
       encrypted[1],
       encrypted[2],
       encrypted[3],
     ]);
 
-    localStorage.setItem(
-      `blindhire:identity:${identityCommitment}`,
-      encodeMetadata({
-        kind: "identity",
-        name: form.identityName,
-        email: form.identityEmail,
-        location: form.identityLocation,
-        portfolio: form.identityPortfolio,
-      }),
+    addLog("Anonymous profile created. Identity is committed, not revealed.");
+  };
+
+  const updateProfile = async () => {
+    if (!chain.ready) {
+      if (await chain.connect()) addLog("Wallet connected. Click update again to send the profile update.");
+      return;
+    }
+
+    const anonymousProfileURI = await prepareMetadata(
+      {
+        kind: "candidate",
+        alias: form.alias,
+        role: form.role,
+        headline: form.headline,
+        skills: splitList(form.skills),
+        projects: splitList(form.projects),
+      },
+      { externalUri: form.profileUri, label: "anonymous profile metadata", onStatus: addLog },
     );
 
-    addLog("Anonymous profile created. Identity is committed, not revealed.");
+    let candidateId: bigint;
+    try {
+      candidateId = asPositiveBigInt(form.existingCandidateId, "Candidate ID");
+    } catch (error) {
+      addLog(inputErrorMessage(error));
+      return;
+    }
+
+    await chain.writeContract("updateCandidateProfile", [candidateId, anonymousProfileURI]);
+    addLog(`Candidate #${form.existingCandidateId} profile metadata updated on-chain.`);
   };
 
   return (
@@ -105,6 +154,9 @@ export default function CandidateProfilePage() {
           </div>
           <Field label="Anonymous Profile Summary">
             <TextArea value={form.headline} onChange={(e) => updateForm("headline", e.target.value)} />
+          </Field>
+          <Field label="Permanent Profile URI">
+            <TextInput value={form.profileUri} onChange={(e) => updateForm("profileUri", e.target.value)} placeholder="ipfs://... or ar://..." />
           </Field>
           <div className="grid gap-6 md:grid-cols-2">
             <Field label="Skills">
@@ -141,14 +193,28 @@ export default function CandidateProfilePage() {
             <Field label="Reveal Portfolio">
               <TextInput value={form.identityPortfolio} onChange={(e) => updateForm("identityPortfolio", e.target.value)} />
             </Field>
+            <Field label="Reveal Note">
+              <TextInput value={form.identityNote} onChange={(e) => updateForm("identityNote", e.target.value)} />
+            </Field>
+            <Field label="Permanent Identity URI">
+              <TextInput value={form.identityUri} onChange={(e) => updateForm("identityUri", e.target.value)} placeholder="ipfs://... or ar://..." />
+            </Field>
           </div>
           <Field label="Identity Commitment Secret">
             <TextInput value={form.identitySecret} onChange={(e) => updateForm("identitySecret", e.target.value)} />
           </Field>
-          <Button type="submit" disabled={chain.busy || chain.connecting}>
-            <Send />
-            [Encrypt & Create Profile]
-          </Button>
+          <div className="flex flex-wrap items-end gap-4">
+            <Button type="submit" disabled={chain.busy || chain.connecting}>
+              <Send />
+              [Encrypt & Create Profile]
+            </Button>
+            <Field label="Existing Candidate ID" className="min-w-48">
+              <TextInput value={form.existingCandidateId} onChange={(e) => updateForm("existingCandidateId", e.target.value)} />
+            </Field>
+            <Button type="button" disabled={chain.busy || chain.connecting} onClick={updateProfile}>
+              [Update Metadata]
+            </Button>
+          </div>
         </form>
       </section>
     </PageShell>

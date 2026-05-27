@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileCheck2, RefreshCcw, Send, UnlockKeyhole } from "lucide-react";
+import { BriefcaseBusiness, ClipboardCheck, FileCheck2, RefreshCcw, Send, Trash2, UnlockKeyhole } from "lucide-react";
+import { ActionLog } from "@/components/action-log";
 import { ChainStatus } from "@/components/chain-status";
 import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
+import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import type { CandidateRecord } from "@/lib/contracts/blindhire";
@@ -32,6 +34,18 @@ const actions = [
     body: "Attach proof metadata and hashes to a candidate profile for verifier review.",
   },
   {
+    href: "/candidate/assessments",
+    icon: ClipboardCheck,
+    title: "Submit assessment",
+    body: "Attach anonymous coding tests, work samples, or interview scores for verifier review.",
+  },
+  {
+    href: "/candidate/jobs",
+    icon: BriefcaseBusiness,
+    title: "Discover jobs",
+    body: "Search open jobs and request a private match without exposing raw encrypted values.",
+  },
+  {
     href: "/candidate/reveal",
     icon: UnlockKeyhole,
     title: "Approve identity reveal",
@@ -43,7 +57,9 @@ export default function CandidatePage() {
   const chain = useBlindHire();
   const [candidates, setCandidates] = useState<CandidateRecord[]>([]);
   const [decrypted, setDecrypted] = useState<Record<string, DecryptedCandidate>>({});
+  const [logs, setLogs] = useState<string[]>([]);
   const { account, contractAddress, loadCandidates } = chain;
+  const addLog = useCallback((item: string) => setLogs((current) => [...current, item]), []);
 
   const refresh = useCallback(async () => {
     if (!contractAddress) return;
@@ -73,6 +89,17 @@ export default function CandidatePage() {
     }));
   };
 
+  const deactivateCandidate = async (candidate: CandidateRecord) => {
+    if (!chain.ready) {
+      if (await chain.connect()) addLog("Wallet connected. Click archive again to send the transaction.");
+      return;
+    }
+
+    await chain.writeContract("deactivateCandidate", [candidate.id]);
+    addLog(`Candidate #${candidate.id.toString()} archived on-chain. Public history remains visible.`);
+    await refresh();
+  };
+
   return (
     <PageShell
       eyebrow="Candidate Dashboard"
@@ -80,8 +107,9 @@ export default function CandidatePage() {
       kicker="Candidate work is split into separate flows: create your anonymous profile, upload proofs, then approve identity reveal only when you choose."
     >
       <ChainStatus chain={chain} />
+      <ActionLog items={logs} />
 
-      <section className="container grid gap-6 py-10 md:grid-cols-3">
+      <section className="container grid gap-6 py-10 md:grid-cols-5">
         {actions.map((action) => {
           const Icon = action.icon;
           return (
@@ -118,7 +146,7 @@ export default function CandidatePage() {
               <LedgerRow key={candidate.id.toString()}>
                 <div>
                   <div className="mb-3 flex flex-wrap items-center gap-3">
-                    <StateLabel state="private">Candidate #{candidate.id.toString()}</StateLabel>
+                    <StateLabel state={candidate.active ? "private" : "pending"}>Candidate #{candidate.id.toString()}</StateLabel>
                     <span className="font-mono text-xs text-foreground/40">{shortAddress(candidate.owner)}</span>
                   </div>
                   <h3 className="font-sentient text-3xl">{String(metadata.role || "Anonymous Talent")}</h3>
@@ -127,6 +155,7 @@ export default function CandidatePage() {
                   </p>
                   <p className="mt-3 font-mono text-xs uppercase tracking-[0.16em] text-foreground/40">
                     Proofs {candidate.verifiedProofs.toString()} verified / {candidate.proofCount.toString()} total
+                    {" | "}Assessments {candidate.assessmentCount.toString()} | Reputation {candidate.reputationScore.toString()}
                   </p>
                   {privateValues ? (
                     <p className="mt-3 font-mono text-sm text-primary">
@@ -135,14 +164,21 @@ export default function CandidatePage() {
                     </p>
                   ) : null}
                 </div>
-                <Button type="button" size="sm" onClick={() => decryptCandidate(candidate)} disabled={!chain.ready || chain.busy}>
-                  [Decrypt Mine]
-                </Button>
+                <div className="flex flex-wrap gap-3 md:justify-end">
+                  <Button type="button" size="sm" onClick={() => decryptCandidate(candidate)} disabled={!chain.ready || chain.busy}>
+                    [Decrypt Mine]
+                  </Button>
+                  <Button type="button" size="sm" onClick={() => deactivateCandidate(candidate)} disabled={chain.busy || !candidate.active}>
+                    <Trash2 />
+                    [Archive]
+                  </Button>
+                </div>
               </LedgerRow>
             );
           })
         )}
       </Ledger>
+      <Notifications loadNotifications={chain.loadNotifications} />
     </PageShell>
   );
 }

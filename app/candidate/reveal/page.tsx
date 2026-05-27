@@ -1,20 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCcw, UnlockKeyhole } from "lucide-react";
 import { ActionLog } from "@/components/action-log";
 import { ChainStatus } from "@/components/chain-status";
 import { Field, TextArea, TextInput } from "@/components/form-field";
 import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
+import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import type { MatchRecord } from "@/lib/contracts/blindhire";
-import { decodeMetadata, encodeMetadata } from "@/lib/metadata";
+import type { CandidateRecord, MatchRecord } from "@/lib/contracts/blindhire";
+import { asPositiveBigInt, decodeMetadata, inputErrorMessage } from "@/lib/metadata";
+import { prepareMetadata } from "@/lib/pinning";
+import { identitySalt } from "@/lib/storage";
 import { useBlindHire } from "@/lib/use-blindhire";
 
 export default function CandidateRevealPage() {
   const chain = useBlindHire();
   const [logs, setLogs] = useState<string[]>([]);
+  const [candidates, setCandidates] = useState<CandidateRecord[]>([]);
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [form, setForm] = useState({
     matchId: "1",
@@ -22,39 +26,67 @@ export default function CandidateRevealPage() {
     email: "rahul@example.com",
     location: "Bengaluru, India",
     portfolio: "https://portfolio.example.com",
+    identityUri: "",
+    identitySecret: "blindhire-demo-secret",
     note: "Open to senior protocol frontend roles.",
   });
-  const { contractAddress, loadMatches } = chain;
+  const { account, contractAddress, loadCandidates, loadMatches } = chain;
 
   const addLog = useCallback((item: string) => setLogs((current) => [...current, item]), []);
   const refresh = useCallback(async () => {
     if (!contractAddress) return;
-    setMatches(await loadMatches());
-  }, [contractAddress, loadMatches]);
+    const [nextCandidates, nextMatches] = await Promise.all([loadCandidates(), loadMatches()]);
+    setCandidates(nextCandidates);
+    setMatches(nextMatches);
+  }, [contractAddress, loadCandidates, loadMatches]);
 
   useEffect(() => {
     refresh().catch(() => undefined);
   }, [refresh]);
 
+  const candidatesById = useMemo(
+    () => new Map(candidates.map((candidate) => [candidate.id.toString(), candidate])),
+    [candidates],
+  );
+
+  const revealQueue = useMemo(
+    () =>
+      matches.filter((match) => {
+        const candidate = candidatesById.get(match.candidateId.toString());
+        if (account && candidate?.owner.toLowerCase() !== account.toLowerCase()) return false;
+        return match.revealRequested || match.revealApproved;
+      }),
+    [account, candidatesById, matches],
+  );
+
   const approveReveal = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!chain.ready) {
-      await chain.connect();
-      addLog("Wallet connected. Submit again to approve the reveal.");
+      if (await chain.connect()) addLog("Wallet connected. Submit again to approve the reveal.");
       return;
     }
 
-    await chain.writeContract("approveReveal", [
-      BigInt(form.matchId),
-      encodeMetadata({
+    let matchId: bigint;
+    try {
+      matchId = asPositiveBigInt(form.matchId, "Match ID");
+    } catch (error) {
+      addLog(inputErrorMessage(error));
+      return;
+    }
+
+    const identityURI = await prepareMetadata(
+      {
         kind: "identity",
         name: form.name,
         email: form.email,
         location: form.location,
         portfolio: form.portfolio,
         note: form.note,
-      }),
-    ]);
+      },
+      { externalUri: form.identityUri, label: "identity metadata", onStatus: addLog },
+    );
+
+    await chain.writeContract("approveReveal", [matchId, identityURI, identitySalt(form.identitySecret)]);
     addLog(`Identity reveal approved for match #${form.matchId}.`);
     await refresh();
   };
@@ -85,6 +117,12 @@ export default function CandidateRevealPage() {
           <Field label="Portfolio">
             <TextInput value={form.portfolio} onChange={(e) => setForm((current) => ({ ...current, portfolio: e.target.value }))} />
           </Field>
+          <Field label="Permanent Identity URI">
+            <TextInput value={form.identityUri} onChange={(e) => setForm((current) => ({ ...current, identityUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
+          </Field>
+          <Field label="Identity Commitment Secret">
+            <TextInput value={form.identitySecret} onChange={(e) => setForm((current) => ({ ...current, identitySecret: e.target.value }))} />
+          </Field>
           <Field label="Note">
             <TextArea value={form.note} onChange={(e) => setForm((current) => ({ ...current, note: e.target.value }))} />
           </Field>
@@ -104,12 +142,12 @@ export default function CandidateRevealPage() {
           }
           className="border-t-0"
         >
-          {matches.length === 0 ? (
+          {revealQueue.length === 0 ? (
             <LedgerRow>
-              <p className="font-mono text-sm text-foreground/50">No matches are on-chain yet.</p>
+              <p className="font-mono text-sm text-foreground/50">No reveal requests are waiting for this wallet.</p>
             </LedgerRow>
           ) : (
-            matches.map((match) => {
+            revealQueue.map((match) => {
               const identity = decodeMetadata(match.revealedIdentityURI);
               return (
                 <LedgerRow key={match.id.toString()}>
@@ -128,12 +166,21 @@ export default function CandidateRevealPage() {
                           : "Identity is still sealed."}
                     </p>
                   </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setForm((current) => ({ ...current, matchId: match.id.toString() }))}
+                    disabled={match.revealApproved}
+                  >
+                    [Use]
+                  </Button>
                 </LedgerRow>
               );
             })
           )}
         </Ledger>
       </section>
+      <Notifications loadNotifications={chain.loadNotifications} />
     </PageShell>
   );
 }

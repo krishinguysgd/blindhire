@@ -3,7 +3,7 @@ import { chains as cofheChains } from "@cofhe/sdk/chains";
 import { createCofheClient, createCofheConfig } from "@cofhe/sdk/node";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createPublicClient, createWalletClient, http, keccak256, toBytes, type Hex } from "viem";
+import { createPublicClient, createWalletClient, encodePacked, http, keccak256, toBytes, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
@@ -92,6 +92,14 @@ async function main() {
     skills: ["React", "TypeScript", "Solidity", "DeFi"],
     projects: ["DEX analytics console", "wallet security dashboard", "governance tooling"],
   });
+  const identityURI = encodeMetadata({
+    kind: "identity",
+    name: "BlindHire Demo Candidate",
+    email: "demo@blindhire.example",
+    portfolio: "https://portfolio.example.com",
+    note: "Open to senior protocol frontend roles.",
+  });
+  const identitySalt = keccak256(toBytes(`blindhire-demo-identity-secret:${demoSeed}`));
 
   await waitFor(
     await walletClient.writeContract({
@@ -100,7 +108,7 @@ async function main() {
       functionName: "createCandidate",
       args: [
         candidateURI,
-        keccak256(toBytes(`blindhire-live-demo-candidate:${demoSeed}`)),
+        keccak256(encodePacked(["string", "bytes32"], [identityURI, identitySalt])),
         candidateInputs[0],
         candidateInputs[1],
         candidateInputs[2],
@@ -140,6 +148,50 @@ async function main() {
       abi: blindHireAbi,
       functionName: "verifySkillProof",
       args: [candidateId, 0n],
+    }),
+    publicClient,
+  );
+
+  const assessmentURI = encodeMetadata({
+    kind: "assessment",
+    title: `Blind coding assessment (${demoSeed})`,
+    rubric: ["TypeScript", "wallet UX", "security edge cases"],
+    scoreBand: "top 10%",
+    notes: "Anonymous assessment result anchored for verifier review.",
+  });
+
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "submitAssessment",
+      args: [candidateId, assessmentURI, keccak256(toBytes(assessmentURI))],
+    }),
+    publicClient,
+  );
+
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "verifyAssessment",
+      args: [candidateId, 0n],
+    }),
+    publicClient,
+  );
+
+  const reputationURI = encodeMetadata({
+    kind: "reputation",
+    title: `Verified production contribution (${demoSeed})`,
+    notes: "Verifier attested shipped work without revealing identity.",
+  });
+
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "recordReputationSignal",
+      args: [candidateId, reputationURI, keccak256(toBytes(reputationURI)), 25n],
     }),
     publicClient,
   );
@@ -185,8 +237,18 @@ async function main() {
     await walletClient.writeContract({
       address: contractAddress as Hex,
       abi: blindHireAbi,
-      functionName: "createMatch",
-      args: [candidateId, jobId, aiSignal[0]],
+      functionName: "requestMatch",
+      args: [candidateId, jobId],
+    }),
+    publicClient,
+  );
+
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "createMatchWithOracleSignal",
+      args: [candidateId, jobId, aiSignal[0], keccak256(toBytes(`blindhire-ai-oracle:${demoSeed}`))],
     }),
     publicClient,
   );
@@ -196,8 +258,39 @@ async function main() {
     abi: blindHireAbi,
     functionName: "matchCount",
   });
+  const matchId = matchCount as bigint;
 
-  console.log(`Seed complete: candidate #${candidateId}, job #${jobId}, match #${matchCount}`);
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "shortlistMatch",
+      args: [matchId],
+    }),
+    publicClient,
+  );
+
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "requestReveal",
+      args: [matchId],
+    }),
+    publicClient,
+  );
+
+  await waitFor(
+    await walletClient.writeContract({
+      address: contractAddress as Hex,
+      abi: blindHireAbi,
+      functionName: "approveReveal",
+      args: [matchId, identityURI, identitySalt],
+    }),
+    publicClient,
+  );
+
+  console.log(`Seed complete: candidate #${candidateId}, job #${jobId}, match #${matchId}`);
 }
 
 main().catch((error) => {

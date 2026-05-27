@@ -2,15 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { FileCheck2, RefreshCcw } from "lucide-react";
-import { keccak256, toBytes } from "viem";
 import { ActionLog } from "@/components/action-log";
 import { ChainStatus } from "@/components/chain-status";
 import { Field, TextArea, TextInput } from "@/components/form-field";
 import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
+import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import type { SkillProofRecord } from "@/lib/contracts/blindhire";
-import { decodeMetadata, encodeMetadata, shortAddress } from "@/lib/metadata";
+import { asPositiveBigInt, decodeMetadata, inputErrorMessage, shortAddress } from "@/lib/metadata";
+import { prepareMetadata } from "@/lib/pinning";
+import { metadataContentHash } from "@/lib/storage";
 import { useBlindHire } from "@/lib/use-blindhire";
 
 export default function CandidateProofsPage() {
@@ -22,6 +24,7 @@ export default function CandidateProofsPage() {
     title: "GitHub ownership and shipped protocol UI",
     issuer: "BlindHire verifier desk",
     link: "https://github.com/example/protocol-ui",
+    permanentUri: "",
     notes: "Repository ownership, shipped work, and audit trail verified.",
   });
   const { contractAddress, loadCandidates, loadProofs } = chain;
@@ -40,20 +43,30 @@ export default function CandidateProofsPage() {
   const addProof = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!chain.ready) {
-      await chain.connect();
-      addLog("Wallet connected. Submit again to add the proof on-chain.");
+      if (await chain.connect()) addLog("Wallet connected. Submit again to add the proof on-chain.");
       return;
     }
 
-    const proofURI = encodeMetadata({
-      kind: "skill-proof",
-      title: form.title,
-      issuer: form.issuer,
-      link: form.link,
-      notes: form.notes,
-    });
+    const proofURI = await prepareMetadata(
+      {
+        kind: "skill-proof",
+        title: form.title,
+        issuer: form.issuer,
+        link: form.link,
+        notes: form.notes,
+      },
+      { externalUri: form.permanentUri, label: "proof metadata", onStatus: addLog },
+    );
 
-    await chain.writeContract("addSkillProof", [BigInt(form.candidateId), proofURI, keccak256(toBytes(proofURI))]);
+    let candidateId: bigint;
+    try {
+      candidateId = asPositiveBigInt(form.candidateId, "Candidate ID");
+    } catch (error) {
+      addLog(inputErrorMessage(error));
+      return;
+    }
+
+    await chain.writeContract("addSkillProof", [candidateId, proofURI, metadataContentHash(proofURI)]);
     addLog(`Skill proof added for candidate #${form.candidateId}.`);
     await refresh();
   };
@@ -80,6 +93,9 @@ export default function CandidateProofsPage() {
           </Field>
           <Field label="Proof Link">
             <TextInput value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} />
+          </Field>
+          <Field label="Permanent Proof URI">
+            <TextInput value={form.permanentUri} onChange={(e) => setForm((current) => ({ ...current, permanentUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
           </Field>
           <Field label="Notes">
             <TextArea value={form.notes} onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))} />
@@ -124,6 +140,7 @@ export default function CandidateProofsPage() {
           )}
         </Ledger>
       </section>
+      <Notifications loadNotifications={chain.loadNotifications} />
     </PageShell>
   );
 }

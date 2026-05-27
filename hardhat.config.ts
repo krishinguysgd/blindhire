@@ -1,6 +1,22 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";
 import "@cofhe/hardhat-plugin";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+for (const fileName of [".env.local", ".env"]) {
+  try {
+    const lines = readFileSync(join(process.cwd(), fileName), "utf8").split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+      const [key, ...valueParts] = trimmed.split("=");
+      process.env[key] ||= valueParts.join("=");
+    }
+  } catch {
+    // Optional local env file.
+  }
+}
 
 const privateKey = process.env.PRIVATE_KEY
   ? process.env.PRIVATE_KEY.startsWith("0x")

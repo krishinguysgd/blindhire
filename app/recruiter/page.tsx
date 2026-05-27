@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, Radar, RefreshCcw, Send } from "lucide-react";
 import { ChainStatus } from "@/components/chain-status";
+import { Field, TextInput } from "@/components/form-field";
 import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
+import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import type { CandidateRecord, JobRecord, MatchRecord } from "@/lib/contracts/blindhire";
@@ -37,6 +39,7 @@ export default function RecruiterPage() {
   const [candidates, setCandidates] = useState<CandidateRecord[]>([]);
   const [jobs, setJobs] = useState<JobRecord[]>([]);
   const [matches, setMatches] = useState<MatchRecord[]>([]);
+  const [query, setQuery] = useState("");
   const { account, contractAddress, loadCandidates, loadJobs, loadMatches } = chain;
 
   const refresh = useCallback(async () => {
@@ -55,6 +58,18 @@ export default function RecruiterPage() {
     if (!account) return jobs;
     return jobs.filter((job) => job.recruiter.toLowerCase() === account.toLowerCase());
   }, [account, jobs]);
+
+  const filteredCandidates = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return candidates;
+    return candidates.filter((candidate) => {
+      const metadata = decodeMetadata(candidate.anonymousProfileURI);
+      return [metadata.alias, metadata.role, metadata.headline, ...(Array.isArray(metadata.skills) ? metadata.skills : [])]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalized);
+    });
+  }, [candidates, query]);
 
   return (
     <PageShell
@@ -80,6 +95,12 @@ export default function RecruiterPage() {
         })}
       </section>
 
+      <section className="container pb-8">
+        <Field label="Search Anonymous Talent">
+          <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="role, skill, proof signal" />
+        </Field>
+      </section>
+
       <Ledger
         title="Anonymous Candidate Ledger"
         action={
@@ -89,23 +110,24 @@ export default function RecruiterPage() {
           </Button>
         }
       >
-        {candidates.length === 0 ? (
+        {filteredCandidates.length === 0 ? (
           <LedgerRow>
             <p className="font-mono text-sm text-foreground/50">No candidate profiles are on-chain yet.</p>
           </LedgerRow>
         ) : (
-          candidates.map((candidate) => {
+          filteredCandidates.map((candidate) => {
             const metadata = decodeMetadata(candidate.anonymousProfileURI);
             return (
               <LedgerRow key={candidate.id.toString()}>
                 <div>
-                  <StateLabel state="private">Candidate #{candidate.id.toString()}</StateLabel>
+                  <StateLabel state={candidate.active ? "private" : "pending"}>Candidate #{candidate.id.toString()}</StateLabel>
                   <h3 className="mt-3 font-sentient text-3xl">{String(metadata.role || "Anonymous Talent")}</h3>
                   <p className="mt-2 max-w-2xl font-mono text-sm leading-6 text-foreground/55">
                     {String(metadata.headline || "Encrypted skill profile")}
                   </p>
                   <p className="mt-3 font-mono text-xs uppercase tracking-[0.16em] text-foreground/40">
-                    Owner {shortAddress(candidate.owner)} | Proofs {candidate.verifiedProofs.toString()} verified
+                    Owner {shortAddress(candidate.owner)} | Proofs {candidate.verifiedProofs.toString()} verified | Reputation{" "}
+                    {candidate.reputationScore.toString()}
                   </p>
                 </div>
                 <span className="font-mono text-xs uppercase tracking-[0.16em] text-foreground/45">Identity hidden</span>
@@ -161,6 +183,7 @@ export default function RecruiterPage() {
           ))
         )}
       </Ledger>
+      <Notifications loadNotifications={chain.loadNotifications} />
     </PageShell>
   );
 }

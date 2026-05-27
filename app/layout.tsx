@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "BlindHire",
   description: "Privacy-first on-chain hiring where talent is evaluated before identity.",
-    generator: 'v0.app'
+  generator: "BlindHire",
 };
 
 export default function RootLayout({

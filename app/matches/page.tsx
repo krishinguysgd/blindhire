@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, RefreshCcw, ShieldCheck } from "lucide-react";
 import { ActionLog } from "@/components/action-log";
 import { ChainStatus } from "@/components/chain-status";
+import { Field, TextInput } from "@/components/form-field";
 import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
+import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import type { CandidateRecord, JobRecord, MatchRecord } from "@/lib/contracts/blindhire";
@@ -24,6 +26,7 @@ export default function MatchesPage() {
   const [jobs, setJobs] = useState<JobRecord[]>([]);
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [insights, setInsights] = useState<Record<string, MatchInsight>>({});
+  const [query, setQuery] = useState("");
   const { contractAddress, loadCandidates, loadJobs, loadMatches } = chain;
 
   const addLog = useCallback((item: string) => setLogs((current) => [...current, item]), []);
@@ -49,6 +52,29 @@ export default function MatchesPage() {
     [candidates],
   );
   const jobsById = useMemo(() => new Map(jobs.map((job) => [job.id.toString(), job])), [jobs]);
+
+  const filteredMatches = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return matches;
+    return matches.filter((match) => {
+      const candidate = candidatesById.get(match.candidateId.toString());
+      const job = jobsById.get(match.jobId.toString());
+      const candidateMeta = decodeMetadata(candidate?.anonymousProfileURI || "");
+      const jobMeta = decodeMetadata(job?.jobURI || "");
+      return [
+        match.id.toString(),
+        candidateMeta.alias,
+        candidateMeta.role,
+        candidateMeta.headline,
+        jobMeta.company,
+        jobMeta.role,
+        jobMeta.description,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalized);
+    });
+  }, [candidatesById, jobsById, matches, query]);
 
   const decryptMatch = async (match: MatchRecord) => {
     if (!chain.ready) {
@@ -88,6 +114,12 @@ export default function MatchesPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
+      <section className="container py-8">
+        <Field label="Search Matches">
+          <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="match id, role, company, alias" />
+        </Field>
+      </section>
+
       <Ledger
         title="On-Chain Match Records"
         action={
@@ -97,12 +129,12 @@ export default function MatchesPage() {
           </Button>
         }
       >
-        {matches.length === 0 ? (
+        {filteredMatches.length === 0 ? (
           <LedgerRow>
             <p className="font-mono text-sm text-foreground/50">No encrypted matches have been created yet.</p>
           </LedgerRow>
         ) : (
-          matches.map((match) => {
+          filteredMatches.map((match) => {
             const candidate = candidatesById.get(match.candidateId.toString());
             const job = jobsById.get(match.jobId.toString());
             const candidateMeta = decodeMetadata(candidate?.anonymousProfileURI || "");
@@ -144,6 +176,11 @@ export default function MatchesPage() {
                       {String(identityMeta.portfolio || "No portfolio")}
                     </p>
                   ) : null}
+                  {match.oracle && match.oracle !== "0x0000000000000000000000000000000000000000" ? (
+                    <p className="mt-3 font-mono text-xs uppercase tracking-[0.16em] text-foreground/40">
+                      AI oracle {shortAddress(match.oracle)} | Report {match.oracleReportHash?.slice(0, 16)}...
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-3 md:justify-end">
                   <Button type="button" size="sm" onClick={() => decryptMatch(match)} disabled={chain.busy}>
@@ -160,6 +197,7 @@ export default function MatchesPage() {
           })
         )}
       </Ledger>
+      <Notifications loadNotifications={chain.loadNotifications} />
     </PageShell>
   );
 }

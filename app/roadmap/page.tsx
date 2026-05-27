@@ -9,8 +9,8 @@ const milestones = [
     body: "Anonymous profiles, encrypted salary and skill inputs, job posting, verified proofs, private matching, shortlist, reveal request, and reveal approval.",
   },
   {
-    title: "Production Hardening",
-    body: "Index events, add role-based verifier governance, store larger metadata through permanent storage, and add audit coverage for reveal permissions.",
+    title: "Wave 5 Ready",
+    body: "Event indexing, job discovery, anonymous assessments, trusted AI/oracle matching, verifier governance, reputation history, decoded errors, and smoke scripts are live.",
   },
   {
     title: "Talent Network",
@@ -23,7 +23,7 @@ export default function RoadmapPage() {
     <PageShell
       eyebrow="Architecture & Roadmap"
       title="BlindHire is built around selective disclosure."
-      kicker="The current implementation is a production-shaped hackathon MVP: all core state transitions happen through the BlindHire contract, while CoFHE keeps sensitive matching values encrypted."
+      kicker="The Wave 5 implementation keeps core state transitions in the BlindHire contract, while CoFHE keeps sensitive matching values encrypted."
     >
       <section className="container grid gap-10 py-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-6 border-y border-border/70 py-8">
@@ -32,6 +32,7 @@ export default function RoadmapPage() {
             ["Candidate", "Encrypt skill score, experience, and salary expectations before profile creation."],
             ["Recruiter", "Encrypt role thresholds and budget band when posting a job."],
             ["Matcher", "Compute encrypted compatibility, salary overlap, and qualification flag on-chain."],
+            ["Assessment", "Anchor anonymous work samples, verifier attestations, reputation signals, and oracle report hashes."],
             ["Reveal", "Recruiter requests identity; candidate approves and writes identity metadata only after consent."],
           ].map(([title, body], index) => (
             <div key={title} className="grid grid-cols-[40px_1fr] gap-4 border-t border-border/70 pt-5 first:border-t-0 first:pt-0">

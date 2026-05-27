@@ -45,7 +45,7 @@ Verifier:
 Confirms candidate proof submissions and manages trust status if the verifier wallet is the contract owner.
 
 AI Matching Signal:
-Today this is represented as an encrypted input to the match function. In a later version this can become a dedicated AI/oracle flow that generates private compatibility signals from assessments, resumes, or work samples.
+Today this is represented as an encrypted input to the match function, with an optional trusted AI/oracle path that records the oracle wallet and report hash. Both recruiter and oracle match creation require a prior candidate-created match request for the same candidate/job pair.
 
 ## How It Works
 
@@ -64,16 +64,19 @@ Today this is represented as an encrypted input to the match function. In a late
 5. Recruiter posts an encrypted job.
    Job metadata is public, while required skill score, minimum experience, and salary range are encrypted.
 
-6. Recruiter creates a private match.
+6. Candidate requests a private match for a job.
+   This on-chain consent record is required before any recruiter or trusted oracle can compute the match.
+
+7. Recruiter or trusted oracle creates a private match.
    The contract computes encrypted skill fit, experience fit, salary overlap, qualification status, and a final encrypted score.
 
-7. Authorized wallets decrypt locally.
+8. Authorized wallets decrypt locally.
    Candidate and recruiter wallets receive FHE access permissions for match outputs. Decryption happens client-side through CoFHE permits.
 
-8. Recruiter requests reveal.
+9. Recruiter requests reveal.
    The candidate identity remains hidden until the recruiter requests reveal and the candidate approves it.
 
-9. Candidate approves identity reveal.
+10. Candidate approves identity reveal.
    The selected identity metadata becomes visible on the match record.
 
 ## Current Features
@@ -88,7 +91,20 @@ Today this is represented as an encrypted input to the match function. In a late
 - On-chain encrypted match computation.
 - Local authorized decryption of encrypted score, salary overlap, and qualification flag.
 - Shortlist, reveal request, and candidate-approved reveal flow.
-- Production guards for duplicate identity commitments, duplicate proof hashes, duplicate matches, invalid verifiers, closed jobs, and repeat reveal actions.
+- Event-indexed ledgers with counter fallback for RPCs that cannot serve logs.
+- Candidate-side job discovery and one-click private match requests.
+- Anonymous assessment submissions and verifier assessment approval.
+- Privacy-preserving reputation signals from trusted verifiers.
+- Trusted AI/oracle match creation with oracle report hashes recorded on-chain.
+- Verifier governance proposals with multi-approval execution.
+- Candidate profile update/archive and recruiter job update/close flows.
+- Role-aware wallet status, RPC health checks, event notifications, and decoded transaction errors.
+- Production guards for duplicate identity commitments, duplicate proof hashes, duplicate matches and match requests, repeat proof/assessment verification, invalid verifiers, closed jobs, and repeat reveal actions.
+- Reveal approval verifies the identity metadata and secret against the candidate's original identity commitment.
+- Encrypted candidate, job, and AI score inputs are bounded on-chain before matching.
+- New candidate, job, proof, assessment, reveal, and reputation metadata can be pinned to IPFS through the server-side Pinata route.
+- IPFS and Arweave metadata URIs resolve through the configured metadata gateway when loaded by the UI.
+- GitHub Actions CI runs the full production validation suite on pushes and pull requests.
 - Hardhat tests for the full private hiring flow and access-control edge cases.
 
 ## App Pages
@@ -97,6 +113,8 @@ Today this is represented as an encrypted input to the match function. In a late
 - `/candidate` - candidate dashboard
 - `/candidate/profile` - create encrypted anonymous profile
 - `/candidate/proofs` - upload candidate skill proofs
+- `/candidate/assessments` - submit anonymous work-sample assessments
+- `/candidate/jobs` - discover open jobs and request private matches
 - `/candidate/reveal` - approve selective identity reveal
 - `/recruiter` - recruiter dashboard
 - `/recruiter/jobs` - post encrypted job
@@ -116,19 +134,31 @@ Core functions:
 - `postJob`
 - `addSkillProof`
 - `verifySkillProof`
+- `submitAssessment`
+- `verifyAssessment`
+- `recordReputationSignal`
+- `requestMatch`
 - `createMatch`
+- `createMatchWithOracleSignal`
 - `shortlistMatch`
 - `requestReveal`
 - `approveReveal`
 - `closeJob`
+- `updateCandidateProfile`
+- `deactivateCandidate`
+- `updateJobMetadata`
 - `setVerifier`
+- `proposeVerifier`
+- `approveVerifierProposal`
+- `setAiOracle`
 
 Encrypted values use CoFHE `InEuint32`, `euint32`, and `ebool`. The contract uses `FHE.allowThis` and `FHE.allow` so the contract, candidate, and recruiter can access the encrypted handles they are supposed to use.
 
 Current Sepolia deployment:
 
 ```bash
-NEXT_PUBLIC_BLINDHIRE_CONTRACT_ADDRESS=0xe431d5251a6902C8AF8582B10eaD4f897d4aB98d
+NEXT_PUBLIC_BLINDHIRE_CONTRACT_ADDRESS=0xe0c76dA5c18F3d4d537dC94411E65713e900c376
+NEXT_PUBLIC_BLINDHIRE_DEPLOY_BLOCK=10932835
 ```
 
 ## Tech Stack
@@ -150,8 +180,25 @@ Create `.env.local` for the frontend:
 ```bash
 NEXT_PUBLIC_BLINDHIRE_CHAIN=eth-sepolia
 NEXT_PUBLIC_BLINDHIRE_CONTRACT_ADDRESS=0xYourDeployedContract
+NEXT_PUBLIC_BLINDHIRE_DEPLOY_BLOCK=12345678
 NEXT_PUBLIC_SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
+NEXT_PUBLIC_METADATA_GATEWAY_URL=https://gateway.pinata.cloud/ipfs/
 ```
+
+Set server-only metadata pinning for local development and Vercel:
+
+```bash
+PINATA_JWT=your-pinata-jwt
+```
+
+Or use the Pinata API key/secret pair:
+
+```bash
+PINATA_API_KEY=your-pinata-api-key
+PINATA_API_SECRET=your-pinata-api-secret
+```
+
+Pinata credentials are used only by `/api/metadata/pin`; never rename them to `NEXT_PUBLIC_*`. The OpenAI key is not required by the current app.
 
 Use shell variables for contract deployment and seeding:
 
@@ -160,7 +207,8 @@ PRIVATE_KEY=0xYourTestnetPrivateKey
 SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 ```
 
-Never commit real private keys. `.env*` files are ignored.
+Hardhat scripts read `.env.local` and `.env` too, while shell variables still take precedence.
+Never commit real private keys or API tokens. Local env files and common credential dump files are ignored by `.gitignore`; keep `.env.example` as the only committed env template.
 
 ## Commands
 
@@ -168,9 +216,10 @@ Never commit real private keys. `.env*` files are ignored.
 npm install
 npm run compile:contracts
 npm run test:contracts
-npx tsc --noEmit
+npm run typecheck
 npm run lint
 npm run build
+npm run validate:prod
 npm run dev
 ```
 
@@ -188,42 +237,54 @@ npm run seed:sepolia
 
 Set `DEMO_SEED=some-unique-label` when you want reproducible seeded metadata. Without it, the script uses a timestamp so duplicate proof and identity guards do not block repeat demos.
 
+Smoke test a deployed Sepolia contract:
+
+```bash
+npm run smoke:sepolia
+```
+
 ## Demo Flow
 
 1. Candidate connects wallet and creates an anonymous encrypted profile.
 2. Candidate uploads a skill proof.
 3. Verifier verifies the proof.
 4. Recruiter posts a job with encrypted requirements.
-5. Recruiter computes a private match.
-6. Recruiter decrypts the authorized match result locally.
-7. Recruiter shortlists and requests identity reveal.
-8. Candidate approves reveal.
-9. Recruiter sees the selected identity metadata.
+5. Candidate requests a private match for that job.
+6. Recruiter computes a private match.
+7. Recruiter decrypts the authorized match result locally.
+8. Recruiter shortlists and requests identity reveal.
+9. Candidate approves reveal.
+10. Recruiter sees the selected identity metadata.
 
-## coming soon 
+## Wave 5 Production Readiness
 
+Wave 5 is implemented in this repo.
 
-These are the issues and missing pieces to handle in the next development wave.
+- Production validation is available through `npm run validate:prod` and `npm run smoke:sepolia`.
+- Dependencies are pinned and high-severity audit findings were removed with overrides where compatible.
+- UI reads candidate, job, match, and match-request IDs from contract events with counter fallback.
+- Larger documents can be represented by IPFS or Arweave URIs while hashes are anchored on-chain for proofs, assessments, and reputation signals. HTTPS references are embedded in JSON metadata instead of treated as immutable content-addressed storage.
+- Trusted AI/oracle matching is supported through `createMatchWithOracleSignal`.
+- Recruiter and oracle match creation require a prior candidate match request.
+- Role UX, RPC health, decoded errors, search/filtering, and event notifications are live in the app.
+- `npm run smoke:sepolia` verifies chain ID, contract reads, and exact deployed bytecode parity with the compiled local artifact.
+- Anonymous assessments, verifier governance, reputation history, candidate job discovery, one-click match requests, and update/archive flows are implemented.
+- Security review notes live in `SECURITY_REVIEW.md`.
 
-- Finish production Vercel deployment validation with clean package-manager settings, production env sync, and deployed-page browser smoke tests.
-- Upgrade and pin framework dependencies after audit review, especially Next.js security patches, without breaking the CoFHE/Three.js flow.
-- Add an event indexer so the UI does not loop through `candidateCount`, `jobCount`, and `matchCount` for large ledgers.
-- Move larger profile, job, proof, and identity documents to permanent storage such as IPFS, Arweave, or encrypted object storage. Current demo metadata is JSON text.
-- Add real AI matching infrastructure. The current encrypted AI signal is manually submitted; Wave 5 should connect a trusted AI/oracle or assessment service.
-- Improve role-specific UX so candidate, recruiter, verifier, and owner flows are clearer when different wallets are connected.
-- Add better transaction error decoding for duplicate proofs, duplicate matches, closed jobs, unauthorized verifiers, and reveal replay attempts.
-- Add notification workflows for reveal requests, verifier review, shortlist events, and candidate approvals.
-- Add anonymous assessment modules for coding tests, work samples, and interview scoring.
-- Add verifier governance beyond owner-controlled `setVerifier`, such as multi-sig ownership, verifier registry proposals, or reputation-weighted approval.
-- Add privacy-preserving reputation history for completed work, endorsements, and DAO contributor records.
-- Add recruiter search and filtering over indexed anonymous candidates and jobs.
-- Add candidate-side job discovery and one-click match requests where the contract permissions still protect private data.
-- Add stronger test coverage: invariant tests, fuzzing for invalid IDs and permission edges, multi-wallet browser tests, and deployed testnet smoke scripts.
-- Add formal security review for encrypted access control, reveal lifecycle, metadata leakage, and trusted verifier assumptions.
-- Add production monitoring for contract events, failed transactions, RPC health, and frontend runtime errors.
-- Add dedicated RPC/provider configuration for production instead of relying on public testnet RPC defaults.
-- Add account-abstraction or gas-sponsorship research so candidates can use the app without managing testnet gas.
-- Add data deletion and profile update flows with clear limits around what can and cannot be removed from public chain history.
+Final Wave 5 verification completed on May 27, 2026:
+
+- `npm run validate:prod` passed: contract compile, Hardhat tests, TypeScript, ESLint, and Next production build.
+- `npm run smoke:sepolia` passed against `0xe0c76dA5c18F3d4d537dC94411E65713e900c376` with exact bytecode parity.
+- Sepolia demo seed completed one full on-chain flow: candidate, proof, assessment, reputation signal, job, match request, oracle match, shortlist, reveal request, and candidate reveal approval.
+- Curl checks returned `200` for all local production routes: `/`, candidate pages, recruiter pages, `/matches`, `/verifier`, and `/roadmap`.
+- Raw Sepolia RPC curl checks returned `candidateCount=1`, `jobCount=1`, and `matchCount=1` for the current contract.
+
+Remaining production assumptions:
+
+- Move ownership to a multisig before handling real candidates.
+- Use a dedicated RPC provider for production.
+- Add an external paymaster if gas sponsorship becomes required.
+- Keep private keys out of repo files and CI logs.
 
 ## Long-Term Ideas
 
