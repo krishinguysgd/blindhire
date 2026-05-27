@@ -1,0 +1,10 @@
+{
+  "lastScan": "2026-05-27",
+  "framework": "Next.js 15 app router",
+  "fontStack": "Geist Mono via next/font, local Sentient display",
+  "palette": "Black background, white foreground, yellow primary",
+  "motion": "Motion-on: Three.js and React Three Fiber used for the landing hero",
+  "spacing": "Tailwind utility spacing with container helper",
+  "preserve": ["font stack", "brand palette", "landing hero animation"],
+  "change": ["remove GL animation from internal app shell"]
+}
