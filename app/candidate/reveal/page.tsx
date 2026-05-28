@@ -23,13 +23,13 @@ export default function CandidateRevealPage() {
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [form, setForm] = useState({
     matchId: "1",
-    name: "Rahul Sharma",
-    email: "rahul@example.com",
-    location: "Bengaluru, India",
-    portfolio: "https://portfolio.example.com",
+    name: "",
+    email: "",
+    location: "",
+    portfolio: "",
     identityUri: "",
-    identitySecret: "blindhire-demo-secret",
-    note: "Open to senior protocol frontend roles.",
+    identitySecret: "",
+    note: "",
   });
   const { account, contractAddress, loadCandidates, loadMatches } = chain;
 
@@ -110,30 +110,30 @@ export default function CandidateRevealPage() {
           >
             <form onSubmit={approveReveal} className="space-y-6">
               <Field label="Match ID">
-                <TextInput value={form.matchId} onChange={(e) => setForm((current) => ({ ...current, matchId: e.target.value }))} />
+                <TextInput value={form.matchId} onChange={(e) => setForm((current) => ({ ...current, matchId: e.target.value }))} placeholder="Match ID" />
               </Field>
               <div className="grid gap-6 md:grid-cols-2">
                 <Field label="Name">
-                  <TextInput value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} />
+                  <TextInput value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} placeholder="Name to reveal" />
                 </Field>
                 <Field label="Email">
-                  <TextInput value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} />
+                  <TextInput type="email" value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} placeholder="name@company.com" />
                 </Field>
                 <Field label="Location">
-                  <TextInput value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} />
+                  <TextInput value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} placeholder="City, country" />
                 </Field>
                 <Field label="Portfolio">
-                  <TextInput value={form.portfolio} onChange={(e) => setForm((current) => ({ ...current, portfolio: e.target.value }))} />
+                  <TextInput value={form.portfolio} onChange={(e) => setForm((current) => ({ ...current, portfolio: e.target.value }))} placeholder="https://..." />
                 </Field>
               </div>
               <Field label="Permanent Identity URI">
                 <TextInput value={form.identityUri} onChange={(e) => setForm((current) => ({ ...current, identityUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
               </Field>
               <Field label="Identity Commitment Secret">
-                <TextInput value={form.identitySecret} onChange={(e) => setForm((current) => ({ ...current, identitySecret: e.target.value }))} />
+                <TextInput type="password" value={form.identitySecret} onChange={(e) => setForm((current) => ({ ...current, identitySecret: e.target.value }))} placeholder="Secret used when the profile was created" />
               </Field>
               <Field label="Note">
-                <TextArea value={form.note} onChange={(e) => setForm((current) => ({ ...current, note: e.target.value }))} />
+                <TextArea value={form.note} onChange={(e) => setForm((current) => ({ ...current, note: e.target.value }))} placeholder="Optional note for this recruiter." />
               </Field>
               <Button type="submit" disabled={chain.busy}>
                 <UnlockKeyhole />

@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-05-28",
+    "macrostructure": "Live Contract Gateway",
+    "theme": "BlindHire operational black/yellow",
+    "enrichment": "landing hero only",
+    "brief": "Sharpen UI, expand homepage with live on-chain state, and remove demo defaults"
+  },
+  {
+    "date": "2026-05-28",
     "macrostructure": "Role-Gated Workspace",
     "theme": "BlindHire operational black/yellow",
     "enrichment": "landing hero only",

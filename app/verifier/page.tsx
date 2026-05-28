@@ -36,9 +36,9 @@ export default function VerifierPage() {
   const [assessmentForm, setAssessmentForm] = useState({ candidateId: "1", assessmentIndex: "0" });
   const [reputationForm, setReputationForm] = useState({
     candidateId: "1",
-    weight: "25",
-    title: "Verified shipped work",
-    notes: "Evidence of production contribution without identity disclosure.",
+    weight: "",
+    title: "",
+    notes: "",
     uri: "",
   });
   const [verifierForm, setVerifierForm] = useState({ verifier: "" });
@@ -234,10 +234,10 @@ export default function VerifierPage() {
           <form onSubmit={verifyProof} className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Candidate ID">
-                <TextInput value={verifyForm.candidateId} onChange={(e) => setVerifyForm((current) => ({ ...current, candidateId: e.target.value }))} />
+                <TextInput value={verifyForm.candidateId} onChange={(e) => setVerifyForm((current) => ({ ...current, candidateId: e.target.value }))} placeholder="Candidate ID" />
               </Field>
               <Field label="Proof Index">
-                <TextInput value={verifyForm.proofIndex} onChange={(e) => setVerifyForm((current) => ({ ...current, proofIndex: e.target.value }))} />
+                <TextInput value={verifyForm.proofIndex} onChange={(e) => setVerifyForm((current) => ({ ...current, proofIndex: e.target.value }))} placeholder="Proof index" />
               </Field>
             </div>
             <Button type="submit" disabled={chain.busy}>
@@ -251,10 +251,10 @@ export default function VerifierPage() {
           <form onSubmit={verifyAssessment} className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Candidate ID">
-                <TextInput value={assessmentForm.candidateId} onChange={(e) => setAssessmentForm((current) => ({ ...current, candidateId: e.target.value }))} />
+                <TextInput value={assessmentForm.candidateId} onChange={(e) => setAssessmentForm((current) => ({ ...current, candidateId: e.target.value }))} placeholder="Candidate ID" />
               </Field>
               <Field label="Assessment Index">
-                <TextInput value={assessmentForm.assessmentIndex} onChange={(e) => setAssessmentForm((current) => ({ ...current, assessmentIndex: e.target.value }))} />
+                <TextInput value={assessmentForm.assessmentIndex} onChange={(e) => setAssessmentForm((current) => ({ ...current, assessmentIndex: e.target.value }))} placeholder="Assessment index" />
               </Field>
             </div>
             <Button type="submit" disabled={chain.busy}>
@@ -270,20 +270,20 @@ export default function VerifierPage() {
           <form onSubmit={recordReputation} className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Candidate ID">
-                <TextInput value={reputationForm.candidateId} onChange={(e) => setReputationForm((current) => ({ ...current, candidateId: e.target.value }))} />
+                <TextInput value={reputationForm.candidateId} onChange={(e) => setReputationForm((current) => ({ ...current, candidateId: e.target.value }))} placeholder="Candidate ID" />
               </Field>
               <Field label="Weight">
-                <TextInput type="number" min="1" max="100" value={reputationForm.weight} onChange={(e) => setReputationForm((current) => ({ ...current, weight: e.target.value }))} />
+                <TextInput type="number" min="1" max="100" value={reputationForm.weight} onChange={(e) => setReputationForm((current) => ({ ...current, weight: e.target.value }))} placeholder="1-100" />
               </Field>
             </div>
             <Field label="Signal Title">
-              <TextInput value={reputationForm.title} onChange={(e) => setReputationForm((current) => ({ ...current, title: e.target.value }))} />
+              <TextInput value={reputationForm.title} onChange={(e) => setReputationForm((current) => ({ ...current, title: e.target.value }))} placeholder="What the signal verifies" />
             </Field>
             <Field label="Permanent Signal URI">
               <TextInput value={reputationForm.uri} onChange={(e) => setReputationForm((current) => ({ ...current, uri: e.target.value }))} placeholder="ipfs://... or ar://..." />
             </Field>
             <Field label="Notes">
-              <TextArea value={reputationForm.notes} onChange={(e) => setReputationForm((current) => ({ ...current, notes: e.target.value }))} />
+              <TextArea value={reputationForm.notes} onChange={(e) => setReputationForm((current) => ({ ...current, notes: e.target.value }))} placeholder="Verifier notes for this reputation signal." />
             </Field>
             <Button type="submit" disabled={chain.busy}>
               <Sparkles />
@@ -306,7 +306,7 @@ export default function VerifierPage() {
                 [Propose]
               </Button>
               <Field label="Proposal ID" className="min-w-36">
-                <TextInput value={proposalId} onChange={(e) => setProposalId(e.target.value)} />
+                <TextInput value={proposalId} onChange={(e) => setProposalId(e.target.value)} placeholder="Proposal ID" />
               </Field>
               <Button type="button" variant="secondary" onClick={approveProposal} disabled={chain.busy}>
                 [Approve]

@@ -22,7 +22,7 @@ export default function RecruiterMatchingPage() {
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [requests, setRequests] = useState<MatchRequestRecord[]>([]);
   const [scores, setScores] = useState<Record<string, string>>({});
-  const [form, setForm] = useState({ candidateId: "1", jobId: "1", aiSignal: "94", oracleReport: "blindhire-ai-v1", useOracle: false });
+  const [form, setForm] = useState({ candidateId: "1", jobId: "1", aiSignal: "", oracleReport: "", useOracle: false });
   const { contractAddress, loadCandidates, loadJobs, loadMatches, loadMatchRequests } = chain;
 
   const addLog = useCallback((item: string) => setLogs((current) => [...current, item]), []);
@@ -58,6 +58,7 @@ export default function RecruiterMatchingPage() {
       candidateId = asPositiveBigInt(form.candidateId, "Candidate ID");
       jobId = asPositiveBigInt(form.jobId, "Job ID");
       aiSignalValue = asUint32(form.aiSignal, "Private AI signal", { max: 100n });
+      if (form.useOracle && !form.oracleReport.trim()) throw new Error("Oracle report reference is required when using the oracle route.");
     } catch (error) {
       addLog(inputErrorMessage(error));
       return;
@@ -111,14 +112,14 @@ export default function RecruiterMatchingPage() {
             <form onSubmit={createMatch} className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <Field label="Candidate ID">
-                  <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} />
+                  <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} placeholder="Candidate ID" />
                 </Field>
                 <Field label="Job ID">
-                  <TextInput value={form.jobId} onChange={(e) => setForm((current) => ({ ...current, jobId: e.target.value }))} />
+                  <TextInput value={form.jobId} onChange={(e) => setForm((current) => ({ ...current, jobId: e.target.value }))} placeholder="Job ID" />
                 </Field>
               </div>
               <Field label="Private AI Signal">
-                <TextInput type="number" min="0" max="100" value={form.aiSignal} onChange={(e) => setForm((current) => ({ ...current, aiSignal: e.target.value }))} />
+                <TextInput type="number" min="0" max="100" value={form.aiSignal} onChange={(e) => setForm((current) => ({ ...current, aiSignal: e.target.value }))} placeholder="0-100" />
               </Field>
               <label className="flex items-center gap-3 border-y border-border/70 py-4 font-mono text-xs uppercase tracking-[0.16em] text-foreground/55">
                 <input
@@ -130,7 +131,7 @@ export default function RecruiterMatchingPage() {
                 Use trusted oracle route
               </label>
               <Field label="Oracle Report Ref">
-                <TextInput value={form.oracleReport} onChange={(e) => setForm((current) => ({ ...current, oracleReport: e.target.value }))} />
+                <TextInput value={form.oracleReport} onChange={(e) => setForm((current) => ({ ...current, oracleReport: e.target.value }))} placeholder="Report URI or hash" />
               </Field>
               <Button type="submit" disabled={chain.busy}>
                 {form.useOracle ? <Bot /> : <Radar />}

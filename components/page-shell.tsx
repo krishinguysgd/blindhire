@@ -14,7 +14,7 @@ type PageShellProps = {
 export function PageShell({ eyebrow, title, kicker, children, className }: PageShellProps) {
   return (
     <main className={cn("app-shell relative min-h-svh overflow-hidden bg-background", className)}>
-      <section className="relative z-10 border-b border-border/80 bg-black/80 pt-28 backdrop-blur-md md:pt-36">
+      <section className="relative z-10 border-b border-border/80 bg-black/95 pt-28 md:pt-36">
         <div className="container grid gap-7 pb-10 md:grid-cols-[0.72fr_0.28fr] md:items-end md:pb-12">
           <div className="min-w-0">
             <Pill className="mb-5">{eyebrow}</Pill>
@@ -27,7 +27,7 @@ export function PageShell({ eyebrow, title, kicker, children, className }: PageS
           </p>
         </div>
       </section>
-      <div className="relative z-10 bg-black/55">{children}</div>
+      <div className="relative z-10 bg-black/85">{children}</div>
     </main>
   );
 }

@@ -14,21 +14,21 @@ import { identityCommitment, identitySalt } from "@/lib/storage";
 import { useBlindHire } from "@/lib/use-blindhire";
 
 const defaults = {
-  alias: "g5b16r",
-  role: "Senior Frontend Protocol Engineer",
-  headline: "5 years React, three DeFi products shipped, smart-contract audit literacy.",
-  skills: "React, TypeScript, Solidity, DeFi, Smart contract audits",
-  projects: "DEX analytics console, wallet security dashboard, governance tooling",
-  skillScore: "92",
-  experienceYears: "5",
-  salaryMin: "130000",
-  salaryMax: "170000",
-  identityName: "Rahul Sharma",
-  identityEmail: "rahul@example.com",
-  identityLocation: "Bengaluru, India",
-  identityPortfolio: "https://portfolio.example.com",
-  identityNote: "Open to senior protocol frontend roles.",
-  identitySecret: "blindhire-demo-secret",
+  alias: "",
+  role: "",
+  headline: "",
+  skills: "",
+  projects: "",
+  skillScore: "",
+  experienceYears: "",
+  salaryMin: "",
+  salaryMax: "",
+  identityName: "",
+  identityEmail: "",
+  identityLocation: "",
+  identityPortfolio: "",
+  identityNote: "",
+  identitySecret: "",
   identityUri: "",
   existingCandidateId: "1",
   profileUri: "",
@@ -152,15 +152,15 @@ export default function CandidateProfilePage() {
           >
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Anonymous Alias">
-                <TextInput value={form.alias} onChange={(e) => updateForm("alias", e.target.value)} />
+                <TextInput value={form.alias} onChange={(e) => updateForm("alias", e.target.value)} placeholder="e.g. protocol-builder-42" />
               </Field>
               <Field label="Skill-First Role">
-                <TextInput value={form.role} onChange={(e) => updateForm("role", e.target.value)} />
+                <TextInput value={form.role} onChange={(e) => updateForm("role", e.target.value)} placeholder="e.g. Senior Frontend Protocol Engineer" />
               </Field>
             </div>
             <div className="mt-6 grid gap-6">
               <Field label="Anonymous Profile Summary">
-                <TextArea value={form.headline} onChange={(e) => updateForm("headline", e.target.value)} />
+                <TextArea value={form.headline} onChange={(e) => updateForm("headline", e.target.value)} placeholder="Summarize experience without name, photo, school, or location." />
               </Field>
               <Field label="Permanent Profile URI">
                 <TextInput value={form.profileUri} onChange={(e) => updateForm("profileUri", e.target.value)} placeholder="ipfs://... or ar://..." />
@@ -168,10 +168,10 @@ export default function CandidateProfilePage() {
             </div>
             <div className="mt-6 grid gap-6 md:grid-cols-2">
               <Field label="Skills">
-                <TextArea value={form.skills} onChange={(e) => updateForm("skills", e.target.value)} />
+                <TextArea value={form.skills} onChange={(e) => updateForm("skills", e.target.value)} placeholder="Comma-separated skills for recruiters to review." />
               </Field>
               <Field label="Projects">
-                <TextArea value={form.projects} onChange={(e) => updateForm("projects", e.target.value)} />
+                <TextArea value={form.projects} onChange={(e) => updateForm("projects", e.target.value)} placeholder="Public project summaries that do not reveal identity." />
               </Field>
             </div>
           </WorkspacePanel>
@@ -183,16 +183,16 @@ export default function CandidateProfilePage() {
           >
             <div className="grid gap-6 md:grid-cols-4">
               <Field label="Private Skill Score">
-                <TextInput type="number" min="0" max="100" value={form.skillScore} onChange={(e) => updateForm("skillScore", e.target.value)} />
+                <TextInput type="number" min="0" max="100" value={form.skillScore} onChange={(e) => updateForm("skillScore", e.target.value)} placeholder="0-100" />
               </Field>
               <Field label="Private Years">
-                <TextInput type="number" min="0" value={form.experienceYears} onChange={(e) => updateForm("experienceYears", e.target.value)} />
+                <TextInput type="number" min="0" value={form.experienceYears} onChange={(e) => updateForm("experienceYears", e.target.value)} placeholder="Years" />
               </Field>
               <Field label="Private Salary Min">
-                <TextInput type="number" min="0" value={form.salaryMin} onChange={(e) => updateForm("salaryMin", e.target.value)} />
+                <TextInput type="number" min="0" value={form.salaryMin} onChange={(e) => updateForm("salaryMin", e.target.value)} placeholder="Minimum" />
               </Field>
               <Field label="Private Salary Max">
-                <TextInput type="number" min="0" value={form.salaryMax} onChange={(e) => updateForm("salaryMax", e.target.value)} />
+                <TextInput type="number" min="0" value={form.salaryMax} onChange={(e) => updateForm("salaryMax", e.target.value)} placeholder="Maximum" />
               </Field>
             </div>
           </WorkspacePanel>
@@ -204,19 +204,19 @@ export default function CandidateProfilePage() {
           >
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Reveal Name">
-                <TextInput value={form.identityName} onChange={(e) => updateForm("identityName", e.target.value)} />
+                <TextInput value={form.identityName} onChange={(e) => updateForm("identityName", e.target.value)} placeholder="Legal or preferred name" />
               </Field>
               <Field label="Reveal Email">
-                <TextInput value={form.identityEmail} onChange={(e) => updateForm("identityEmail", e.target.value)} />
+                <TextInput type="email" value={form.identityEmail} onChange={(e) => updateForm("identityEmail", e.target.value)} placeholder="name@company.com" />
               </Field>
               <Field label="Reveal Location">
-                <TextInput value={form.identityLocation} onChange={(e) => updateForm("identityLocation", e.target.value)} />
+                <TextInput value={form.identityLocation} onChange={(e) => updateForm("identityLocation", e.target.value)} placeholder="City, country" />
               </Field>
               <Field label="Reveal Portfolio">
-                <TextInput value={form.identityPortfolio} onChange={(e) => updateForm("identityPortfolio", e.target.value)} />
+                <TextInput value={form.identityPortfolio} onChange={(e) => updateForm("identityPortfolio", e.target.value)} placeholder="https://..." />
               </Field>
               <Field label="Reveal Note">
-                <TextInput value={form.identityNote} onChange={(e) => updateForm("identityNote", e.target.value)} />
+                <TextInput value={form.identityNote} onChange={(e) => updateForm("identityNote", e.target.value)} placeholder="Optional context for the recruiter" />
               </Field>
               <Field label="Permanent Identity URI">
                 <TextInput value={form.identityUri} onChange={(e) => updateForm("identityUri", e.target.value)} placeholder="ipfs://... or ar://..." />
@@ -224,7 +224,7 @@ export default function CandidateProfilePage() {
             </div>
             <div className="mt-6">
               <Field label="Identity Commitment Secret">
-                <TextInput value={form.identitySecret} onChange={(e) => updateForm("identitySecret", e.target.value)} />
+                <TextInput type="password" value={form.identitySecret} onChange={(e) => updateForm("identitySecret", e.target.value)} placeholder="Save this secret for reveal approval" />
               </Field>
             </div>
           </WorkspacePanel>
@@ -244,7 +244,7 @@ export default function CandidateProfilePage() {
           <WorkspacePanel title="Update existing profile" body="Use this only when the anonymous profile metadata needs to change.">
             <div className="space-y-5">
               <Field label="Existing Candidate ID">
-                <TextInput value={form.existingCandidateId} onChange={(e) => updateForm("existingCandidateId", e.target.value)} />
+                <TextInput value={form.existingCandidateId} onChange={(e) => updateForm("existingCandidateId", e.target.value)} placeholder="Candidate ID" />
               </Field>
               <Button type="button" variant="secondary" disabled={chain.busy || chain.connecting} onClick={updateProfile}>
                 [Update Metadata]

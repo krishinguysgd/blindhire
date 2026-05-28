@@ -61,10 +61,10 @@ export default function RoadmapPage() {
         </div>
       </section>
 
-      <section className="border-y border-border/80 bg-black/35 py-10 backdrop-blur-md">
+      <section className="border-y border-border/80 bg-surface/95 py-10">
         <div className="container flex flex-wrap items-center justify-between gap-5">
           <div>
-            <h2 className="font-sentient text-4xl">Run the demo flow</h2>
+            <h2 className="font-sentient text-4xl">Run the production flow</h2>
             <p className="mt-3 max-w-2xl font-mono text-sm leading-6 text-foreground/55">
               Create a candidate, add a proof, verify it, post a job, compute a private match, request reveal, then approve disclosure.
             </p>

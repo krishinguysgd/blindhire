@@ -22,11 +22,11 @@ export default function CandidateAssessmentsPage() {
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
   const [form, setForm] = useState({
     candidateId: "1",
-    title: "Blind coding assessment",
-    rubric: "TypeScript, wallet UX, security edge cases",
-    scoreBand: "top 10%",
+    title: "",
+    rubric: "",
+    scoreBand: "",
     evidenceUri: "",
-    notes: "Anonymous work sample completed without identity fields.",
+    notes: "",
   });
   const { contractAddress, loadAssessments, loadCandidates } = chain;
 
@@ -93,23 +93,23 @@ export default function CandidateAssessmentsPage() {
             <form onSubmit={submitAssessment} className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <Field label="Candidate ID">
-                  <TextInput value={form.candidateId} onChange={(event) => update("candidateId", event.target.value)} />
+                  <TextInput value={form.candidateId} onChange={(event) => update("candidateId", event.target.value)} placeholder="Candidate ID" />
                 </Field>
                 <Field label="Score Band">
-                  <TextInput value={form.scoreBand} onChange={(event) => update("scoreBand", event.target.value)} />
+                  <TextInput value={form.scoreBand} onChange={(event) => update("scoreBand", event.target.value)} placeholder="e.g. top 10% or pass" />
                 </Field>
               </div>
               <Field label="Assessment Title">
-                <TextInput value={form.title} onChange={(event) => update("title", event.target.value)} />
+                <TextInput value={form.title} onChange={(event) => update("title", event.target.value)} placeholder="Assessment or work sample name" />
               </Field>
               <Field label="Rubric">
-                <TextArea value={form.rubric} onChange={(event) => update("rubric", event.target.value)} />
+                <TextArea value={form.rubric} onChange={(event) => update("rubric", event.target.value)} placeholder="Comma-separated rubric items." />
               </Field>
               <Field label="Permanent Evidence URI">
                 <TextInput value={form.evidenceUri} onChange={(event) => update("evidenceUri", event.target.value)} placeholder="ipfs://... or ar://..." />
               </Field>
               <Field label="Notes">
-                <TextArea value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+                <TextArea value={form.notes} onChange={(event) => update("notes", event.target.value)} placeholder="Anonymous review notes." />
               </Field>
               <Button type="submit" disabled={chain.busy}>
                 <ClipboardCheck />

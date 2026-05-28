@@ -22,11 +22,11 @@ export default function CandidateProofsPage() {
   const [proofs, setProofs] = useState<SkillProofRecord[]>([]);
   const [form, setForm] = useState({
     candidateId: "1",
-    title: "GitHub ownership and shipped protocol UI",
-    issuer: "BlindHire verifier desk",
-    link: "https://github.com/example/protocol-ui",
+    title: "",
+    issuer: "",
+    link: "",
     permanentUri: "",
-    notes: "Repository ownership, shipped work, and audit trail verified.",
+    notes: "",
   });
   const { contractAddress, loadCandidates, loadProofs } = chain;
 
@@ -90,24 +90,24 @@ export default function CandidateProofsPage() {
           >
             <form onSubmit={addProof} className="space-y-6">
               <Field label="Candidate ID">
-                <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} />
+                <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} placeholder="Candidate ID" />
               </Field>
               <div className="grid gap-6 md:grid-cols-2">
                 <Field label="Proof Title">
-                  <TextInput value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} />
+                  <TextInput value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} placeholder="What this proof shows" />
                 </Field>
                 <Field label="Issuer">
-                  <TextInput value={form.issuer} onChange={(e) => setForm((current) => ({ ...current, issuer: e.target.value }))} />
+                  <TextInput value={form.issuer} onChange={(e) => setForm((current) => ({ ...current, issuer: e.target.value }))} placeholder="Issuer or source" />
                 </Field>
               </div>
               <Field label="Proof Link">
-                <TextInput value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} />
+                <TextInput value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} placeholder="https://..." />
               </Field>
               <Field label="Permanent Proof URI">
                 <TextInput value={form.permanentUri} onChange={(e) => setForm((current) => ({ ...current, permanentUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
               </Field>
               <Field label="Notes">
-                <TextArea value={form.notes} onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))} />
+                <TextArea value={form.notes} onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))} placeholder="Verifier-facing context, without identity clues." />
               </Field>
               <Button type="submit" disabled={chain.busy}>
                 <FileCheck2 />

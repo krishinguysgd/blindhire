@@ -102,7 +102,7 @@ export default function DashboardPage() {
       <section className="border-y border-border/80 bg-black/35 py-8">
         <div className="container flex flex-wrap items-center justify-between gap-5">
           <div>
-            <h2 className="font-sentient text-4xl">Need the fastest demo path?</h2>
+            <h2 className="font-sentient text-4xl">Need the cleanest first action?</h2>
             <p className="mt-3 max-w-2xl font-mono text-sm leading-6 text-foreground/55">
               Create a candidate profile first, then use the recruiter flow after the wallet has an on-chain profile to match against.
             </p>

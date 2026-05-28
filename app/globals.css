@@ -1,4 +1,4 @@
-/* Hallmark · pre-emit critique: P5 H4 E4 S4 R5 V4
+/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4
  * macrostructure: Workspace Shell · tone: operational · anchor hue: yellow
  */
 @import "tailwindcss";
@@ -23,10 +23,12 @@
   --background: #000000;
   --foreground: #ffffff;
   --primary: #FFC700;
-  --primary-foreground: #ffffff;
+  --primary-foreground: #000000;
   --border: #424242;
   --panel: #080808;
   --panel-muted: #101010;
+  --surface: #050505;
+  --surface-raised: #0c0c0c;
 }
 
 @utility container {
@@ -50,6 +52,8 @@
   --color-border: var(--border);
   --color-panel: var(--panel);
   --color-panel-muted: var(--panel-muted);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
 
   --font-mono: var(--font-geist-mono);
   --font-sentient: 'Sentient', sans-serif;
@@ -62,6 +66,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: clip;
+  text-rendering: optimizeLegibility;
 }
 
 html {
@@ -70,8 +75,8 @@ html {
 
 .app-shell {
   background:
-    linear-gradient(180deg, rgb(0 0 0 / 0.98), rgb(8 8 8 / 0.96) 42%, rgb(0 0 0 / 1)),
-    linear-gradient(90deg, rgb(255 199 0 / 0.035), transparent 32%, rgb(255 255 255 / 0.025) 68%, transparent);
+    linear-gradient(180deg, rgb(0 0 0 / 1), rgb(5 5 5 / 1) 42%, rgb(0 0 0 / 1)),
+    linear-gradient(90deg, rgb(255 199 0 / 0.025), transparent 34%, rgb(255 255 255 / 0.018) 72%, transparent);
 }
 
 .app-shell::before {
@@ -81,8 +86,8 @@ html {
   z-index: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    linear-gradient(rgb(255 255 255 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.7), transparent 72%);
 }

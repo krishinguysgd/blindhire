@@ -14,7 +14,7 @@ export function WorkspacePanel({
   className?: string;
 }) {
   return (
-    <section className={cn("border-y border-border/70 bg-black/20 p-5 md:p-7", className)}>
+    <section className={cn("border-y border-border/70 bg-surface/95 p-5 md:p-7", className)}>
       <div className="mb-7">
         {eyebrow ? <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">{eyebrow}</p> : null}
         <h2 className="mt-2 font-sentient text-3xl leading-tight">{title}</h2>
@@ -37,7 +37,7 @@ export function StepAside({
   className?: string;
 }) {
   return (
-    <aside className={cn("border-y border-border/70 bg-black/25 p-5 md:p-7", className)}>
+    <aside className={cn("border-y border-border/70 bg-surface/95 p-5 md:p-7", className)}>
       <h2 className="font-mono text-sm uppercase tracking-[0.18em] text-foreground/70">{title}</h2>
       <div className="mt-6 space-y-5">
         {steps.map((step, index) => (

@@ -53,7 +53,7 @@ export function ChainStatus({ chain }: ChainStatusProps) {
   }, [account, contractAddress, getRpcHealth, readContract]);
 
   return (
-    <section className="border-y border-border/80 bg-black/45 backdrop-blur-md">
+    <section className="border-y border-border/80 bg-black/90">
       <div className="container grid gap-5 py-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,520px)_auto] xl:items-center">
         <div className="flex items-start gap-4">
           <div className="hidden border-y border-primary/50 py-3 text-primary sm:block">

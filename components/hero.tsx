@@ -10,7 +10,7 @@ import { BriefcaseBusiness, LayoutDashboard } from "lucide-react";
 export function Hero() {
   const [hovering, setHovering] = useState(false);
   return (
-    <div className="flex flex-col h-svh justify-between">
+    <div className="flex min-h-[88svh] flex-col justify-between">
       <GL hovering={hovering} />
 
       <div className="relative z-10 mt-auto px-4 pb-16 text-center">

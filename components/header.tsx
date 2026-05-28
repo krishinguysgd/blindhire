@@ -12,7 +12,7 @@ export const Header = () => {
   ];
 
   return (
-    <div className="fixed z-50 top-0 left-0 w-full bg-gradient-to-b from-black via-black/80 to-black/0 pb-8 pt-8 backdrop-blur-[2px] md:pb-10 md:pt-10">
+    <div className="fixed left-0 top-0 z-50 w-full bg-gradient-to-b from-black via-black/95 to-black/0 pb-8 pt-8 md:pb-10 md:pt-10">
       <header className="flex items-center justify-between container">
         <Link href="/">
           <Logo className="w-[142px] md:w-[170px]" />

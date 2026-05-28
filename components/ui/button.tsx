@@ -10,8 +10,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-background border-primary text-primary-foreground [&>[data-border]]:bg-primary [box-shadow:inset_0_0_54px_0px_var(--tw-shadow-color)] shadow-[#EBB800] hover:shadow-[#EBB800]/80",
-        secondary: "bg-black/20 border-border text-foreground [&>[data-border]]:bg-border hover:border-primary/70 hover:text-primary",
+        default: "bg-primary border-primary text-primary-foreground [&>[data-border]]:bg-primary-foreground hover:bg-primary/90",
+        secondary: "bg-surface border-border text-foreground [&>[data-border]]:bg-border hover:border-primary/70 hover:text-primary",
         quiet: "bg-transparent border-transparent text-foreground/65 [&>[data-border]]:bg-transparent hover:text-foreground",
       },
       size: {

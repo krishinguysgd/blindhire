@@ -16,14 +16,14 @@ import { prepareMetadata } from "@/lib/pinning";
 import { useBlindHire } from "@/lib/use-blindhire";
 
 const defaults = {
-  company: "CipherWorks Labs",
-  role: "Senior Frontend Protocol Engineer",
-  description: "Own wallet flows, private matching dashboards, and security-sensitive product surfaces.",
-  requirements: "React, TypeScript, DeFi, wallet UX, smart contract literacy",
-  requiredSkillScore: "85",
-  minExperienceYears: "4",
-  salaryMin: "125000",
-  salaryMax: "175000",
+  company: "",
+  role: "",
+  description: "",
+  requirements: "",
+  requiredSkillScore: "",
+  minExperienceYears: "",
+  salaryMin: "",
+  salaryMax: "",
   jobUri: "",
   existingJobId: "1",
 };
@@ -165,18 +165,18 @@ export default function RecruiterJobsPage() {
           >
             <div className="grid gap-6 md:grid-cols-2">
               <Field label="Company">
-                <TextInput value={form.company} onChange={(e) => update("company", e.target.value)} />
+                <TextInput value={form.company} onChange={(e) => update("company", e.target.value)} placeholder="Company or team name" />
               </Field>
               <Field label="Role">
-                <TextInput value={form.role} onChange={(e) => update("role", e.target.value)} />
+                <TextInput value={form.role} onChange={(e) => update("role", e.target.value)} placeholder="Role title" />
               </Field>
             </div>
             <div className="mt-6 grid gap-6">
               <Field label="Role Brief">
-                <TextArea value={form.description} onChange={(e) => update("description", e.target.value)} />
+                <TextArea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Public role summary candidates can inspect." />
               </Field>
               <Field label="Requirements">
-                <TextArea value={form.requirements} onChange={(e) => update("requirements", e.target.value)} />
+                <TextArea value={form.requirements} onChange={(e) => update("requirements", e.target.value)} placeholder="Comma-separated public requirements." />
               </Field>
               <Field label="Permanent Job URI">
                 <TextInput value={form.jobUri} onChange={(e) => update("jobUri", e.target.value)} placeholder="ipfs://... or ar://..." />
@@ -191,16 +191,16 @@ export default function RecruiterJobsPage() {
           >
             <div className="grid gap-6 md:grid-cols-4">
               <Field label="Required Skill">
-                <TextInput type="number" value={form.requiredSkillScore} onChange={(e) => update("requiredSkillScore", e.target.value)} />
+                <TextInput type="number" min="0" max="100" value={form.requiredSkillScore} onChange={(e) => update("requiredSkillScore", e.target.value)} placeholder="0-100" />
               </Field>
               <Field label="Min Years">
-                <TextInput type="number" value={form.minExperienceYears} onChange={(e) => update("minExperienceYears", e.target.value)} />
+                <TextInput type="number" min="0" value={form.minExperienceYears} onChange={(e) => update("minExperienceYears", e.target.value)} placeholder="Years" />
               </Field>
               <Field label="Budget Min">
-                <TextInput type="number" value={form.salaryMin} onChange={(e) => update("salaryMin", e.target.value)} />
+                <TextInput type="number" min="0" value={form.salaryMin} onChange={(e) => update("salaryMin", e.target.value)} placeholder="Minimum" />
               </Field>
               <Field label="Budget Max">
-                <TextInput type="number" value={form.salaryMax} onChange={(e) => update("salaryMax", e.target.value)} />
+                <TextInput type="number" min="0" value={form.salaryMax} onChange={(e) => update("salaryMax", e.target.value)} placeholder="Maximum" />
               </Field>
             </div>
           </WorkspacePanel>
@@ -219,7 +219,7 @@ export default function RecruiterJobsPage() {
           <WorkspacePanel title="Manage existing job" body="Update metadata or close a job from the connected recruiter wallet.">
             <div className="space-y-5">
               <Field label="Existing Job ID">
-                <TextInput value={form.existingJobId} onChange={(e) => update("existingJobId", e.target.value)} />
+                <TextInput value={form.existingJobId} onChange={(e) => update("existingJobId", e.target.value)} placeholder="Job ID" />
               </Field>
               <div className="flex flex-wrap gap-3">
                 <Button type="button" size="sm" variant="secondary" onClick={updateJob} disabled={chain.busy}>
