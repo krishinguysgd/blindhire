@@ -80,9 +80,7 @@ Today this is represented as an encrypted input to the match function, with an o
    The selected identity metadata becomes visible on the match record.
 
 ## Current Features
-
-- Animated Next.js interface using the existing template motion and visual style.
-- Separate pages for candidate, recruiter, verifier, matches, and roadmap flows.
+ 
 - Wallet connection and chain switching for Sepolia-compatible networks.
 - CoFHE encryption from the browser for candidate/job/match inputs.
 - On-chain candidate profile creation.
