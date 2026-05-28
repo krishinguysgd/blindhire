@@ -277,13 +277,7 @@ Final Wave 5 verification completed on May 27, 2026:
 - Curl checks returned `200` for all local production routes: `/`, candidate pages, recruiter pages, `/matches`, `/verifier`, and `/roadmap`.
 - Raw Sepolia RPC curl checks returned `candidateCount=1`, `jobCount=1`, and `matchCount=1` for the current contract.
 
-Remaining production assumptions:
-
-- Move ownership to a multisig before handling real candidates.
-- Use a dedicated RPC provider for production.
-- Add an external paymaster if gas sponsorship becomes required.
-- Keep private keys out of repo files and CI logs.
-
+ asds
 ## Long-Term Ideas
 
 - Blind salary negotiation where both sides prove salary overlap without revealing exact numbers.
