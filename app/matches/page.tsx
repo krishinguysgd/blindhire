@@ -9,6 +9,8 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { MetricTile } from "@/components/workflow-card";
+import { WorkspacePanel } from "@/components/workspace-panel";
 import type { CandidateRecord, JobRecord, MatchRecord } from "@/lib/contracts/blindhire";
 import { decodeMetadata, shortAddress } from "@/lib/metadata";
 import { useBlindHire } from "@/lib/use-blindhire";
@@ -114,16 +116,25 @@ export default function MatchesPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container py-8">
-        <Field label="Search Matches">
-          <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="match id, role, company, alias" />
-        </Field>
+      <section className="container grid gap-6 py-8 md:grid-cols-4">
+        <MetricTile label="Matches" value={matches.length.toString()} detail="Encrypted compatibility records." />
+        <MetricTile label="Revealed" value={matches.filter((match) => match.revealApproved).length.toString()} detail="Identity approved by candidate." />
+        <MetricTile label="Pending reveal" value={matches.filter((match) => match.revealRequested && !match.revealApproved).length.toString()} detail="Waiting on candidate approval." />
+        <MetricTile label="Decrypted here" value={Object.keys(insights).length.toString()} detail="Local authorized decryptions this session." />
+      </section>
+
+      <section className="container py-4">
+        <WorkspacePanel eyebrow="Match search" title="Filter match records" body="Search by match ID, anonymous role, company, or alias. Decryption still requires an authorized wallet.">
+          <Field label="Search Matches">
+            <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="match id, role, company, alias" />
+          </Field>
+        </WorkspacePanel>
       </section>
 
       <Ledger
         title="On-Chain Match Records"
         action={
-          <Button type="button" size="sm" onClick={refresh}>
+          <Button type="button" size="sm" variant="secondary" onClick={refresh}>
             <RefreshCcw />
             [Refresh]
           </Button>
@@ -187,7 +198,7 @@ export default function MatchesPage() {
                     <ShieldCheck />
                     [Decrypt]
                   </Button>
-                  <Button type="button" size="sm" onClick={() => requestReveal(match)} disabled={chain.busy || match.revealApproved}>
+                  <Button type="button" size="sm" variant="secondary" onClick={() => requestReveal(match)} disabled={chain.busy || match.revealApproved}>
                     <Eye />
                     [Reveal]
                   </Button>

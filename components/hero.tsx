@@ -5,7 +5,7 @@ import { GL } from "./gl";
 import { Pill } from "./pill";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { BriefcaseBusiness, UserRoundPlus } from "lucide-react";
+import { BriefcaseBusiness, LayoutDashboard } from "lucide-react";
 
 export function Hero() {
   const [hovering, setHovering] = useState(false);
@@ -24,31 +24,23 @@ export function Hero() {
         </p>
 
         <div className="mt-14 flex flex-wrap items-center justify-center gap-4">
-        <Link className="contents max-sm:hidden" href="/candidate/profile">
+        <Link className="contents" href="/dashboard">
           <Button
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
           >
-            <UserRoundPlus />
-            [Create Profile]
+            <LayoutDashboard />
+            [Open Dashboard]
           </Button>
         </Link>
-        <Link className="contents max-sm:hidden" href="/recruiter/jobs">
+        <Link className="contents max-sm:hidden" href="/roadmap">
           <Button
+            variant="secondary"
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
           >
             <BriefcaseBusiness />
-            [Post Job]
-          </Button>
-        </Link>
-        <Link className="contents sm:hidden" href="/candidate/profile">
-          <Button
-            size="sm"
-            onMouseEnter={() => setHovering(true)}
-            onMouseLeave={() => setHovering(false)}
-          >
-            [Launch]
+            [View Flow]
           </Button>
         </Link>
         </div>

@@ -48,10 +48,10 @@ export default function Home() {
                 Candidate profile, proof upload, verifier attestation, recruiter job, encrypted match, then selective identity reveal.
               </p>
             </div>
-            <Link href="/roadmap">
+            <Link href="/dashboard">
               <Button>
                 <ArrowRight />
-                [View Flow]
+                [Open Dashboard]
               </Button>
             </Link>
           </div>

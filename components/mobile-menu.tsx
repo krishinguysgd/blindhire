@@ -14,6 +14,7 @@ export const MobileMenu = ({ className }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
+    { name: "Dashboard", href: "/dashboard" },
     { name: "Candidate", href: "/candidate" },
     { name: "Recruiter", href: "/recruiter" },
     { name: "Matches", href: "/matches" },
@@ -73,11 +74,11 @@ export const MobileMenu = ({ className }: MobileMenuProps) => {
 
             <div className="mt-6">
               <Link
-                href="/candidate"
+                href="/dashboard"
                 onClick={handleLinkClick}
                 className="inline-block text-xl font-mono uppercase text-primary transition-colors ease-out duration-150 hover:text-primary/80 py-2"
               >
-                Launch App
+                Open Dashboard
               </Link>
             </div>
           </nav>

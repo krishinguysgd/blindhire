@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, Radar, RefreshCcw, Send } from "lucide-react";
 import { ChainStatus } from "@/components/chain-status";
@@ -9,6 +8,7 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { FlowRail, MetricTile, WorkflowCard } from "@/components/workflow-card";
 import type { CandidateRecord, JobRecord, MatchRecord } from "@/lib/contracts/blindhire";
 import { decodeMetadata, shortAddress } from "@/lib/metadata";
 import { useBlindHire } from "@/lib/use-blindhire";
@@ -17,18 +17,21 @@ const actions = [
   {
     href: "/recruiter/jobs",
     icon: Send,
+    step: "Step 01",
     title: "Post encrypted job",
     body: "Publish job metadata while salary range and matching thresholds stay encrypted.",
   },
   {
     href: "/recruiter/matching",
     icon: Radar,
+    step: "Step 02",
     title: "Compute private match",
     body: "Run encrypted compatibility for a candidate and job pair.",
   },
   {
     href: "/recruiter/decisions",
     icon: Eye,
+    step: "Step 03",
     title: "Shortlist and reveal",
     body: "Shortlist candidates and request identity reveal after private evaluation.",
   },
@@ -79,20 +82,23 @@ export default function RecruiterPage() {
     >
       <ChainStatus chain={chain} />
 
+      <FlowRail steps={["Post job", "Review talent", "Compute match", "Request reveal"]} />
+
+      <section className="container grid gap-6 pb-8 md:grid-cols-4">
+        <MetricTile label="My jobs" value={myJobs.length.toString()} detail="Jobs posted by the connected wallet." />
+        <MetricTile label="Open talent" value={candidates.filter((candidate) => candidate.active).length.toString()} detail="Anonymous active profiles on-chain." />
+        <MetricTile label="Matches" value={matches.length.toString()} detail="Encrypted compatibility records." />
+        <MetricTile
+          label="Reveal requests"
+          value={matches.filter((match) => match.revealRequested && !match.revealApproved).length.toString()}
+          detail="Waiting for candidate approval."
+        />
+      </section>
+
       <section className="container grid gap-6 py-10 md:grid-cols-3">
-        {actions.map((action) => {
-          const Icon = action.icon;
-          return (
-            <Link key={action.href} href={action.href} className="group border-y border-border/70 py-6">
-              <Icon className="mb-5 size-5 text-primary" />
-              <h2 className="font-sentient text-3xl">{action.title}</h2>
-              <p className="mt-3 font-mono text-sm leading-6 text-foreground/55">{action.body}</p>
-              <span className="mt-5 inline-block font-mono text-xs uppercase tracking-[0.18em] text-primary group-hover:text-primary/80">
-                Open flow
-              </span>
-            </Link>
-          );
-        })}
+        {actions.map((action) => (
+          <WorkflowCard key={action.href} {...action} />
+        ))}
       </section>
 
       <section className="container pb-8">

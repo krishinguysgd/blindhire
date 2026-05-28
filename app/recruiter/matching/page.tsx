@@ -8,6 +8,7 @@ import { Field, TextInput } from "@/components/form-field";
 import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { StepAside, WorkspacePanel } from "@/components/workspace-panel";
 import type { CandidateRecord, JobRecord, MatchRecord, MatchRequestRecord } from "@/lib/contracts/blindhire";
 import { asPositiveBigInt, asUint32, decodeMetadata, inputErrorMessage, shortAddress } from "@/lib/metadata";
 import { metadataContentHash } from "@/lib/storage";
@@ -100,34 +101,48 @@ export default function RecruiterMatchingPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-10 py-12 lg:grid-cols-[0.75fr_1.25fr]">
-        <form onSubmit={createMatch} className="space-y-6">
-          <Field label="Candidate ID">
-            <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} />
-          </Field>
-          <Field label="Job ID">
-            <TextInput value={form.jobId} onChange={(e) => setForm((current) => ({ ...current, jobId: e.target.value }))} />
-          </Field>
-          <Field label="Private AI Signal">
-            <TextInput type="number" min="0" max="100" value={form.aiSignal} onChange={(e) => setForm((current) => ({ ...current, aiSignal: e.target.value }))} />
-          </Field>
-          <label className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.16em] text-foreground/55">
-            <input
-              type="checkbox"
-              checked={form.useOracle}
-              onChange={(e) => setForm((current) => ({ ...current, useOracle: e.target.checked }))}
-              className="size-4 accent-[hsl(var(--primary))]"
-            />
-            Use Trusted Oracle
-          </label>
-          <Field label="Oracle Report Ref">
-            <TextInput value={form.oracleReport} onChange={(e) => setForm((current) => ({ ...current, oracleReport: e.target.value }))} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            {form.useOracle ? <Bot /> : <Radar />}
-            [Compute Match]
-          </Button>
-        </form>
+      <section className="container grid gap-8 py-10 xl:grid-cols-[minmax(0,0.8fr)_minmax(440px,1.2fr)]">
+        <div className="space-y-6">
+          <WorkspacePanel
+            eyebrow="Match console"
+            title="Compute encrypted compatibility"
+            body="Load a candidate/job pair from a request or type the IDs directly, then encrypt the AI signal before calling the contract."
+          >
+            <form onSubmit={createMatch} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Field label="Candidate ID">
+                  <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} />
+                </Field>
+                <Field label="Job ID">
+                  <TextInput value={form.jobId} onChange={(e) => setForm((current) => ({ ...current, jobId: e.target.value }))} />
+                </Field>
+              </div>
+              <Field label="Private AI Signal">
+                <TextInput type="number" min="0" max="100" value={form.aiSignal} onChange={(e) => setForm((current) => ({ ...current, aiSignal: e.target.value }))} />
+              </Field>
+              <label className="flex items-center gap-3 border-y border-border/70 py-4 font-mono text-xs uppercase tracking-[0.16em] text-foreground/55">
+                <input
+                  type="checkbox"
+                  checked={form.useOracle}
+                  onChange={(e) => setForm((current) => ({ ...current, useOracle: e.target.checked }))}
+                  className="size-4 accent-primary"
+                />
+                Use trusted oracle route
+              </label>
+              <Field label="Oracle Report Ref">
+                <TextInput value={form.oracleReport} onChange={(e) => setForm((current) => ({ ...current, oracleReport: e.target.value }))} />
+              </Field>
+              <Button type="submit" disabled={chain.busy}>
+                {form.useOracle ? <Bot /> : <Radar />}
+                [Compute Match]
+              </Button>
+            </form>
+          </WorkspacePanel>
+          <StepAside
+            title="Matching order"
+            steps={["Candidate requests a job match.", "Recruiter loads the candidate/job pair.", "AI signal is encrypted locally.", "Contract stores encrypted score, salary overlap, and qualified flag."]}
+          />
+        </div>
 
         <Ledger
           title="Anonymous Candidate Ledger"
@@ -138,6 +153,7 @@ export default function RecruiterMatchingPage() {
             </Button>
           }
           className="border-t-0"
+          contained={false}
         >
           {candidates.length === 0 ? (
             <LedgerRow>

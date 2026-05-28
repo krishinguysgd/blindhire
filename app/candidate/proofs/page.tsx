@@ -9,6 +9,7 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { StepAside, WorkspacePanel } from "@/components/workspace-panel";
 import type { SkillProofRecord } from "@/lib/contracts/blindhire";
 import { asPositiveBigInt, decodeMetadata, inputErrorMessage, shortAddress } from "@/lib/metadata";
 import { prepareMetadata } from "@/lib/pinning";
@@ -80,31 +81,45 @@ export default function CandidateProofsPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-10 py-12 lg:grid-cols-[0.85fr_1.15fr]">
-        <form onSubmit={addProof} className="space-y-6">
-          <Field label="Candidate ID">
-            <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} />
-          </Field>
-          <Field label="Proof Title">
-            <TextInput value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} />
-          </Field>
-          <Field label="Issuer">
-            <TextInput value={form.issuer} onChange={(e) => setForm((current) => ({ ...current, issuer: e.target.value }))} />
-          </Field>
-          <Field label="Proof Link">
-            <TextInput value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} />
-          </Field>
-          <Field label="Permanent Proof URI">
-            <TextInput value={form.permanentUri} onChange={(e) => setForm((current) => ({ ...current, permanentUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
-          </Field>
-          <Field label="Notes">
-            <TextArea value={form.notes} onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <FileCheck2 />
-            [Add Proof]
-          </Button>
-        </form>
+      <section className="container grid gap-8 py-10 xl:grid-cols-[minmax(0,0.85fr)_minmax(420px,1.15fr)]">
+        <div className="space-y-6">
+          <WorkspacePanel
+            eyebrow="Candidate evidence"
+            title="Add proof metadata"
+            body="Attach one proof at a time. The hash is anchored on-chain and verifiers can attest it from their desk."
+          >
+            <form onSubmit={addProof} className="space-y-6">
+              <Field label="Candidate ID">
+                <TextInput value={form.candidateId} onChange={(e) => setForm((current) => ({ ...current, candidateId: e.target.value }))} />
+              </Field>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Field label="Proof Title">
+                  <TextInput value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} />
+                </Field>
+                <Field label="Issuer">
+                  <TextInput value={form.issuer} onChange={(e) => setForm((current) => ({ ...current, issuer: e.target.value }))} />
+                </Field>
+              </div>
+              <Field label="Proof Link">
+                <TextInput value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} />
+              </Field>
+              <Field label="Permanent Proof URI">
+                <TextInput value={form.permanentUri} onChange={(e) => setForm((current) => ({ ...current, permanentUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
+              </Field>
+              <Field label="Notes">
+                <TextArea value={form.notes} onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))} />
+              </Field>
+              <Button type="submit" disabled={chain.busy}>
+                <FileCheck2 />
+                [Add Proof]
+              </Button>
+            </form>
+          </WorkspacePanel>
+          <StepAside
+            title="Proof checklist"
+            steps={["Choose your candidate ID.", "Point at public evidence or let Pinata store the metadata.", "Submit the proof.", "A trusted verifier marks it verified later."]}
+          />
+        </div>
 
         <Ledger
           title="Candidate Proof Ledger"
@@ -115,6 +130,7 @@ export default function CandidateProofsPage() {
             </Button>
           }
           className="border-t-0"
+          contained={false}
         >
           {proofs.length === 0 ? (
             <LedgerRow>

@@ -10,6 +10,8 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { MetricTile } from "@/components/workflow-card";
+import { WorkspacePanel } from "@/components/workspace-panel";
 import type {
   AssessmentRecord,
   CandidateRecord,
@@ -220,86 +222,98 @@ export default function VerifierPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-10 py-12 lg:grid-cols-2">
-        <form onSubmit={verifyProof} className="space-y-6">
-          <h2 className="font-mono text-sm uppercase tracking-[0.2em] text-foreground/70">Verify Candidate Proof</h2>
-          <Field label="Candidate ID">
-            <TextInput value={verifyForm.candidateId} onChange={(e) => setVerifyForm((current) => ({ ...current, candidateId: e.target.value }))} />
-          </Field>
-          <Field label="Proof Index">
-            <TextInput value={verifyForm.proofIndex} onChange={(e) => setVerifyForm((current) => ({ ...current, proofIndex: e.target.value }))} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <BadgeCheck />
-            [Verify Proof]
-          </Button>
-        </form>
-
-        <form onSubmit={verifyAssessment} className="space-y-6 border-t border-border/70 pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-          <h2 className="font-mono text-sm uppercase tracking-[0.2em] text-foreground/70">Verify Assessment</h2>
-          <Field label="Candidate ID">
-            <TextInput value={assessmentForm.candidateId} onChange={(e) => setAssessmentForm((current) => ({ ...current, candidateId: e.target.value }))} />
-          </Field>
-          <Field label="Assessment Index">
-            <TextInput value={assessmentForm.assessmentIndex} onChange={(e) => setAssessmentForm((current) => ({ ...current, assessmentIndex: e.target.value }))} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <ClipboardCheck />
-            [Verify Assessment]
-          </Button>
-        </form>
+      <section className="container grid gap-6 py-8 md:grid-cols-4">
+        <MetricTile label="Candidates" value={candidates.length.toString()} detail="Profiles visible for verifier review." />
+        <MetricTile label="Proofs" value={proofs.length.toString()} detail="Submitted proof records." />
+        <MetricTile label="Assessments" value={assessments.length.toString()} detail="Anonymous work samples." />
+        <MetricTile label="Reputation" value={reputation.length.toString()} detail="Recorded reputation signals." />
       </section>
 
-      <section className="container grid gap-10 pb-12 lg:grid-cols-2">
-        <form onSubmit={recordReputation} className="space-y-6 border-y border-border/70 py-8">
-          <h2 className="font-mono text-sm uppercase tracking-[0.2em] text-foreground/70">Record Reputation Signal</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Field label="Candidate ID">
-              <TextInput value={reputationForm.candidateId} onChange={(e) => setReputationForm((current) => ({ ...current, candidateId: e.target.value }))} />
-            </Field>
-            <Field label="Weight">
-              <TextInput type="number" min="1" max="100" value={reputationForm.weight} onChange={(e) => setReputationForm((current) => ({ ...current, weight: e.target.value }))} />
-            </Field>
-          </div>
-          <Field label="Signal Title">
-            <TextInput value={reputationForm.title} onChange={(e) => setReputationForm((current) => ({ ...current, title: e.target.value }))} />
-          </Field>
-          <Field label="Permanent Signal URI">
-            <TextInput value={reputationForm.uri} onChange={(e) => setReputationForm((current) => ({ ...current, uri: e.target.value }))} placeholder="ipfs://... or ar://..." />
-          </Field>
-          <Field label="Notes">
-            <TextArea value={reputationForm.notes} onChange={(e) => setReputationForm((current) => ({ ...current, notes: e.target.value }))} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <Sparkles />
-            [Record Reputation]
-          </Button>
-        </form>
+      <section className="container grid gap-8 py-8 lg:grid-cols-2">
+        <WorkspacePanel eyebrow="Attestation" title="Verify candidate proof" body="Use the proof ledger below to pick the candidate ID and proof index.">
+          <form onSubmit={verifyProof} className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Field label="Candidate ID">
+                <TextInput value={verifyForm.candidateId} onChange={(e) => setVerifyForm((current) => ({ ...current, candidateId: e.target.value }))} />
+              </Field>
+              <Field label="Proof Index">
+                <TextInput value={verifyForm.proofIndex} onChange={(e) => setVerifyForm((current) => ({ ...current, proofIndex: e.target.value }))} />
+              </Field>
+            </div>
+            <Button type="submit" disabled={chain.busy}>
+              <BadgeCheck />
+              [Verify Proof]
+            </Button>
+          </form>
+        </WorkspacePanel>
 
-        <form onSubmit={setVerifier} className="space-y-6 border-t border-border/70 pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-          <h2 className="font-mono text-sm uppercase tracking-[0.2em] text-foreground/70">Owner Verifier Registry</h2>
-          <p className="font-mono text-sm leading-6 text-foreground/55">
-            Contract owner: {shortAddress(owner)}. Only this account can add a trusted verifier.
-          </p>
-          <Field label="Verifier Address">
-            <TextInput value={verifierForm.verifier} onChange={(e) => setVerifierForm({ verifier: e.target.value })} placeholder="0x..." />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <ShieldPlus />
-            [Add Trusted Verifier]
-          </Button>
-          <div className="flex flex-wrap items-end gap-4 border-t border-border/70 pt-6">
-            <Button type="button" onClick={proposeVerifier} disabled={chain.busy}>
-              [Propose Verifier]
+        <WorkspacePanel eyebrow="Assessment" title="Verify work sample" body="Approve anonymous assessments after reviewing their anchored evidence.">
+          <form onSubmit={verifyAssessment} className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Field label="Candidate ID">
+                <TextInput value={assessmentForm.candidateId} onChange={(e) => setAssessmentForm((current) => ({ ...current, candidateId: e.target.value }))} />
+              </Field>
+              <Field label="Assessment Index">
+                <TextInput value={assessmentForm.assessmentIndex} onChange={(e) => setAssessmentForm((current) => ({ ...current, assessmentIndex: e.target.value }))} />
+              </Field>
+            </div>
+            <Button type="submit" disabled={chain.busy}>
+              <ClipboardCheck />
+              [Verify Assessment]
             </Button>
-            <Field label="Proposal ID" className="min-w-36">
-              <TextInput value={proposalId} onChange={(e) => setProposalId(e.target.value)} />
+          </form>
+        </WorkspacePanel>
+      </section>
+
+      <section className="container grid gap-8 pb-12 lg:grid-cols-2">
+        <WorkspacePanel eyebrow="Reputation" title="Record reputation signal" body="Trusted verifiers can add weighted signals after reviewing proof quality.">
+          <form onSubmit={recordReputation} className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Field label="Candidate ID">
+                <TextInput value={reputationForm.candidateId} onChange={(e) => setReputationForm((current) => ({ ...current, candidateId: e.target.value }))} />
+              </Field>
+              <Field label="Weight">
+                <TextInput type="number" min="1" max="100" value={reputationForm.weight} onChange={(e) => setReputationForm((current) => ({ ...current, weight: e.target.value }))} />
+              </Field>
+            </div>
+            <Field label="Signal Title">
+              <TextInput value={reputationForm.title} onChange={(e) => setReputationForm((current) => ({ ...current, title: e.target.value }))} />
             </Field>
-            <Button type="button" onClick={approveProposal} disabled={chain.busy}>
-              [Approve Proposal]
+            <Field label="Permanent Signal URI">
+              <TextInput value={reputationForm.uri} onChange={(e) => setReputationForm((current) => ({ ...current, uri: e.target.value }))} placeholder="ipfs://... or ar://..." />
+            </Field>
+            <Field label="Notes">
+              <TextArea value={reputationForm.notes} onChange={(e) => setReputationForm((current) => ({ ...current, notes: e.target.value }))} />
+            </Field>
+            <Button type="submit" disabled={chain.busy}>
+              <Sparkles />
+              [Record Reputation]
             </Button>
-          </div>
-        </form>
+          </form>
+        </WorkspacePanel>
+
+        <WorkspacePanel eyebrow="Governance" title="Verifier registry" body={`Contract owner: ${shortAddress(owner)}. Owner can add directly; trusted verifiers can use proposals.`}>
+          <form onSubmit={setVerifier} className="space-y-6">
+            <Field label="Verifier Address">
+              <TextInput value={verifierForm.verifier} onChange={(e) => setVerifierForm({ verifier: e.target.value })} placeholder="0x..." />
+            </Field>
+            <Button type="submit" disabled={chain.busy}>
+              <ShieldPlus />
+              [Add Trusted Verifier]
+            </Button>
+            <div className="flex flex-wrap items-end gap-4 border-t border-border/70 pt-6">
+              <Button type="button" variant="secondary" onClick={proposeVerifier} disabled={chain.busy}>
+                [Propose]
+              </Button>
+              <Field label="Proposal ID" className="min-w-36">
+                <TextInput value={proposalId} onChange={(e) => setProposalId(e.target.value)} />
+              </Field>
+              <Button type="button" variant="secondary" onClick={approveProposal} disabled={chain.busy}>
+                [Approve]
+              </Button>
+            </div>
+          </form>
+        </WorkspacePanel>
       </section>
 
       <Ledger

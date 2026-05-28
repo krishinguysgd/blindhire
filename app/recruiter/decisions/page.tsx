@@ -9,6 +9,7 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { StepAside, WorkspacePanel } from "@/components/workspace-panel";
 import type { JobRecord, MatchRecord } from "@/lib/contracts/blindhire";
 import { asPositiveBigInt, decodeMetadata, inputErrorMessage } from "@/lib/metadata";
 import { useBlindHire } from "@/lib/use-blindhire";
@@ -88,21 +89,33 @@ export default function RecruiterDecisionsPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-10 py-12 lg:grid-cols-[0.75fr_1.25fr]">
+      <section className="container grid gap-8 py-10 xl:grid-cols-[minmax(0,0.75fr)_minmax(440px,1.25fr)]">
         <div className="space-y-6">
-          <Field label="Match ID">
-            <TextInput value={matchId} onChange={(e) => setMatchId(e.target.value)} />
-          </Field>
-          <div className="flex flex-wrap gap-4">
-            <Button type="button" onClick={() => shortlist()} disabled={chain.busy}>
-              <ListChecks />
-              [Shortlist]
-            </Button>
-            <Button type="button" onClick={() => requestReveal()} disabled={chain.busy}>
-              <Eye />
-              [Request Reveal]
-            </Button>
-          </div>
+          <WorkspacePanel
+            eyebrow="Decision controls"
+            title="Select a match"
+            body="Use a row from the ledger or enter a match ID manually. Shortlist first, then request reveal only when you want identity disclosure."
+          >
+            <div className="space-y-6">
+              <Field label="Match ID">
+                <TextInput value={matchId} onChange={(e) => setMatchId(e.target.value)} />
+              </Field>
+              <div className="flex flex-wrap gap-4">
+                <Button type="button" onClick={() => shortlist()} disabled={chain.busy}>
+                  <ListChecks />
+                  [Shortlist]
+                </Button>
+                <Button type="button" variant="secondary" onClick={() => requestReveal()} disabled={chain.busy}>
+                  <Eye />
+                  [Request Reveal]
+                </Button>
+              </div>
+            </div>
+          </WorkspacePanel>
+          <StepAside
+            title="Decision order"
+            steps={["Decrypt or review the private match.", "Shortlist a candidate.", "Request reveal when ready.", "Candidate approves identity disclosure from their page."]}
+          />
         </div>
 
         <Ledger
@@ -114,6 +127,7 @@ export default function RecruiterDecisionsPage() {
             </Button>
           }
           className="border-t-0"
+          contained={false}
         >
           {visibleMatches.length === 0 ? (
             <LedgerRow>
@@ -142,13 +156,13 @@ export default function RecruiterDecisionsPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-3 md:justify-end">
-                    <Button type="button" size="sm" onClick={() => setMatchId(match.id.toString())}>
+                    <Button type="button" size="sm" variant="secondary" onClick={() => setMatchId(match.id.toString())}>
                       [Use]
                     </Button>
                     <Button type="button" size="sm" onClick={() => shortlist(match.id.toString())} disabled={chain.busy || match.shortlisted || match.revealApproved}>
                       [Shortlist]
                     </Button>
-                    <Button type="button" size="sm" onClick={() => requestReveal(match.id.toString())} disabled={chain.busy || match.revealRequested || match.revealApproved}>
+                    <Button type="button" size="sm" variant="secondary" onClick={() => requestReveal(match.id.toString())} disabled={chain.busy || match.revealRequested || match.revealApproved}>
                       [Reveal]
                     </Button>
                   </div>

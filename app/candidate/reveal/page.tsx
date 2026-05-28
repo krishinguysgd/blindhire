@@ -9,6 +9,7 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { StepAside, WorkspacePanel } from "@/components/workspace-panel";
 import type { CandidateRecord, MatchRecord } from "@/lib/contracts/blindhire";
 import { asPositiveBigInt, decodeMetadata, inputErrorMessage } from "@/lib/metadata";
 import { prepareMetadata } from "@/lib/pinning";
@@ -100,37 +101,51 @@ export default function CandidateRevealPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-10 py-12 lg:grid-cols-[0.85fr_1.15fr]">
-        <form onSubmit={approveReveal} className="space-y-6">
-          <Field label="Match ID">
-            <TextInput value={form.matchId} onChange={(e) => setForm((current) => ({ ...current, matchId: e.target.value }))} />
-          </Field>
-          <Field label="Name">
-            <TextInput value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} />
-          </Field>
-          <Field label="Email">
-            <TextInput value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} />
-          </Field>
-          <Field label="Location">
-            <TextInput value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} />
-          </Field>
-          <Field label="Portfolio">
-            <TextInput value={form.portfolio} onChange={(e) => setForm((current) => ({ ...current, portfolio: e.target.value }))} />
-          </Field>
-          <Field label="Permanent Identity URI">
-            <TextInput value={form.identityUri} onChange={(e) => setForm((current) => ({ ...current, identityUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
-          </Field>
-          <Field label="Identity Commitment Secret">
-            <TextInput value={form.identitySecret} onChange={(e) => setForm((current) => ({ ...current, identitySecret: e.target.value }))} />
-          </Field>
-          <Field label="Note">
-            <TextArea value={form.note} onChange={(e) => setForm((current) => ({ ...current, note: e.target.value }))} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <UnlockKeyhole />
-            [Approve Reveal]
-          </Button>
-        </form>
+      <section className="container grid gap-8 py-10 xl:grid-cols-[minmax(0,0.85fr)_minmax(440px,1.15fr)]">
+        <div className="space-y-6">
+          <WorkspacePanel
+            eyebrow="Identity approval"
+            title="Reveal only for the selected match"
+            body="The identity URI and secret must match the commitment created with the original profile."
+          >
+            <form onSubmit={approveReveal} className="space-y-6">
+              <Field label="Match ID">
+                <TextInput value={form.matchId} onChange={(e) => setForm((current) => ({ ...current, matchId: e.target.value }))} />
+              </Field>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Field label="Name">
+                  <TextInput value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} />
+                </Field>
+                <Field label="Email">
+                  <TextInput value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} />
+                </Field>
+                <Field label="Location">
+                  <TextInput value={form.location} onChange={(e) => setForm((current) => ({ ...current, location: e.target.value }))} />
+                </Field>
+                <Field label="Portfolio">
+                  <TextInput value={form.portfolio} onChange={(e) => setForm((current) => ({ ...current, portfolio: e.target.value }))} />
+                </Field>
+              </div>
+              <Field label="Permanent Identity URI">
+                <TextInput value={form.identityUri} onChange={(e) => setForm((current) => ({ ...current, identityUri: e.target.value }))} placeholder="ipfs://... or ar://..." />
+              </Field>
+              <Field label="Identity Commitment Secret">
+                <TextInput value={form.identitySecret} onChange={(e) => setForm((current) => ({ ...current, identitySecret: e.target.value }))} />
+              </Field>
+              <Field label="Note">
+                <TextArea value={form.note} onChange={(e) => setForm((current) => ({ ...current, note: e.target.value }))} />
+              </Field>
+              <Button type="submit" disabled={chain.busy}>
+                <UnlockKeyhole />
+                [Approve Reveal]
+              </Button>
+            </form>
+          </WorkspacePanel>
+          <StepAside
+            title="Reveal guard"
+            steps={["Recruiter requests reveal.", "Candidate selects the match.", "Identity metadata and secret are checked against the commitment.", "Identity URI becomes visible on-chain after approval."]}
+          />
+        </div>
 
         <Ledger
           title="Reveal Queue"
@@ -141,6 +156,7 @@ export default function CandidateRevealPage() {
             </Button>
           }
           className="border-t-0"
+          contained={false}
         >
           {revealQueue.length === 0 ? (
             <LedgerRow>
@@ -169,6 +185,7 @@ export default function CandidateRevealPage() {
                   <Button
                     type="button"
                     size="sm"
+                    variant="secondary"
                     onClick={() => setForm((current) => ({ ...current, matchId: match.id.toString() }))}
                     disabled={match.revealApproved}
                   >

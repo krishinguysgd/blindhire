@@ -9,6 +9,7 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { StepAside, WorkspacePanel } from "@/components/workspace-panel";
 import type { AssessmentRecord } from "@/lib/contracts/blindhire";
 import { asPositiveBigInt, decodeMetadata, inputErrorMessage, splitList, shortAddress } from "@/lib/metadata";
 import { prepareMetadata } from "@/lib/pinning";
@@ -82,31 +83,45 @@ export default function CandidateAssessmentsPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-10 py-12 lg:grid-cols-[0.85fr_1.15fr]">
-        <form onSubmit={submitAssessment} className="space-y-6">
-          <Field label="Candidate ID">
-            <TextInput value={form.candidateId} onChange={(event) => update("candidateId", event.target.value)} />
-          </Field>
-          <Field label="Assessment Title">
-            <TextInput value={form.title} onChange={(event) => update("title", event.target.value)} />
-          </Field>
-          <Field label="Rubric">
-            <TextArea value={form.rubric} onChange={(event) => update("rubric", event.target.value)} />
-          </Field>
-          <Field label="Score Band">
-            <TextInput value={form.scoreBand} onChange={(event) => update("scoreBand", event.target.value)} />
-          </Field>
-          <Field label="Permanent Evidence URI">
-            <TextInput value={form.evidenceUri} onChange={(event) => update("evidenceUri", event.target.value)} placeholder="ipfs://... or ar://..." />
-          </Field>
-          <Field label="Notes">
-            <TextArea value={form.notes} onChange={(event) => update("notes", event.target.value)} />
-          </Field>
-          <Button type="submit" disabled={chain.busy}>
-            <ClipboardCheck />
-            [Submit Assessment]
-          </Button>
-        </form>
+      <section className="container grid gap-8 py-10 xl:grid-cols-[minmax(0,0.85fr)_minmax(420px,1.15fr)]">
+        <div className="space-y-6">
+          <WorkspacePanel
+            eyebrow="Work sample"
+            title="Submit anonymous assessment"
+            body="Use this for coding tasks, work samples, interviews, or rubric-based evidence that should not reveal identity."
+          >
+            <form onSubmit={submitAssessment} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Field label="Candidate ID">
+                  <TextInput value={form.candidateId} onChange={(event) => update("candidateId", event.target.value)} />
+                </Field>
+                <Field label="Score Band">
+                  <TextInput value={form.scoreBand} onChange={(event) => update("scoreBand", event.target.value)} />
+                </Field>
+              </div>
+              <Field label="Assessment Title">
+                <TextInput value={form.title} onChange={(event) => update("title", event.target.value)} />
+              </Field>
+              <Field label="Rubric">
+                <TextArea value={form.rubric} onChange={(event) => update("rubric", event.target.value)} />
+              </Field>
+              <Field label="Permanent Evidence URI">
+                <TextInput value={form.evidenceUri} onChange={(event) => update("evidenceUri", event.target.value)} placeholder="ipfs://... or ar://..." />
+              </Field>
+              <Field label="Notes">
+                <TextArea value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+              </Field>
+              <Button type="submit" disabled={chain.busy}>
+                <ClipboardCheck />
+                [Submit Assessment]
+              </Button>
+            </form>
+          </WorkspacePanel>
+          <StepAside
+            title="Assessment flow"
+            steps={["Attach anonymous work-sample metadata.", "Pin or provide a permanent evidence URI.", "Submit the content hash on-chain.", "Verifier reviews and marks the assessment verified."]}
+          />
+        </div>
 
         <Ledger
           title="Assessment Ledger"
@@ -117,6 +132,7 @@ export default function CandidateAssessmentsPage() {
             </Button>
           }
           className="border-t-0"
+          contained={false}
         >
           {assessments.length === 0 ? (
             <LedgerRow>

@@ -6,15 +6,17 @@ export function Ledger({
   action,
   children,
   className,
+  contained = true,
 }: {
   title: string;
   action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  contained?: boolean;
 }) {
   return (
     <section className={cn("border-t border-border/80", className)}>
-      <div className="container py-8">
+      <div className={cn(contained ? "container py-8" : "py-0")}>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h2 className="font-mono text-sm uppercase tracking-[0.2em] text-foreground/70">{title}</h2>
           {action}

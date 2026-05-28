@@ -4,11 +4,11 @@ import { MobileMenu } from "./mobile-menu";
 
 export const Header = () => {
   const navItems = [
+    { label: "Dashboard", href: "/dashboard" },
     { label: "Candidate", href: "/candidate" },
     { label: "Recruiter", href: "/recruiter" },
     { label: "Matches", href: "/matches" },
     { label: "Verifier", href: "/verifier" },
-    { label: "Roadmap", href: "/roadmap" },
   ];
 
   return (
@@ -17,7 +17,7 @@ export const Header = () => {
         <Link href="/">
           <Logo className="w-[142px] md:w-[170px]" />
         </Link>
-        <nav className="flex max-lg:hidden absolute left-1/2 -translate-x-1/2 items-center justify-center gap-x-10">
+        <nav className="flex max-lg:hidden absolute left-1/2 -translate-x-1/2 items-center justify-center gap-x-8">
           {navItems.map((item) => (
             <Link
               className="uppercase inline-block font-mono text-foreground/60 hover:text-foreground/100 duration-150 transition-colors ease-out"
@@ -28,8 +28,8 @@ export const Header = () => {
             </Link>
           ))}
         </nav>
-        <Link className="uppercase max-lg:hidden transition-colors ease-out duration-150 font-mono text-primary hover:text-primary/80" href="/candidate">
-          Launch App
+        <Link className="uppercase max-lg:hidden transition-colors ease-out duration-150 font-mono text-primary hover:text-primary/80" href="/dashboard">
+          Open Dashboard
         </Link>
         <MobileMenu />
       </header>

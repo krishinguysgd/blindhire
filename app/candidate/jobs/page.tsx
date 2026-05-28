@@ -9,6 +9,7 @@ import { Ledger, LedgerRow, StateLabel } from "@/components/ledger";
 import { Notifications } from "@/components/notifications";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { StepAside, WorkspacePanel } from "@/components/workspace-panel";
 import type { CandidateRecord, JobRecord, MatchRequestRecord } from "@/lib/contracts/blindhire";
 import { asPositiveBigInt, decodeMetadata, inputErrorMessage, shortAddress } from "@/lib/metadata";
 import { useBlindHire } from "@/lib/use-blindhire";
@@ -96,24 +97,36 @@ export default function CandidateJobsPage() {
       <ChainStatus chain={chain} />
       <ActionLog items={logs} />
 
-      <section className="container grid gap-6 py-10 md:grid-cols-[1fr_220px_auto] md:items-end">
-        <Field label="Search Open Jobs">
-          <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="role, company, skill" />
-        </Field>
-        <Field label="Candidate Profile">
-          <SelectInput value={candidateId} onChange={(event) => setCandidateId(event.target.value)}>
-            {myCandidates.length === 0 ? <option value="1">No active profile</option> : null}
-            {myCandidates.map((candidate) => (
-              <option key={candidate.id.toString()} value={candidate.id.toString()}>
-                Candidate #{candidate.id.toString()}
-              </option>
-            ))}
-          </SelectInput>
-        </Field>
-        <Button type="button" size="sm" onClick={refresh}>
-          <RefreshCcw />
-          [Refresh]
-        </Button>
+      <section className="container grid gap-8 py-10 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <WorkspacePanel
+          eyebrow="Discovery controls"
+          title="Find a job, then request a private match"
+          body="Pick the candidate profile you want to use. The recruiter computes the encrypted match after your request."
+        >
+          <div className="grid gap-6 md:grid-cols-[1fr_240px_auto] md:items-end">
+            <Field label="Search Open Jobs">
+              <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="role, company, skill" />
+            </Field>
+            <Field label="Candidate Profile">
+              <SelectInput value={candidateId} onChange={(event) => setCandidateId(event.target.value)}>
+                {myCandidates.length === 0 ? <option value="1">No active profile</option> : null}
+                {myCandidates.map((candidate) => (
+                  <option key={candidate.id.toString()} value={candidate.id.toString()}>
+                    Candidate #{candidate.id.toString()}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            <Button type="button" size="sm" variant="secondary" onClick={refresh}>
+              <RefreshCcw />
+              [Refresh]
+            </Button>
+          </div>
+        </WorkspacePanel>
+        <StepAside
+          title="Match request flow"
+          steps={["Create an anonymous profile first.", "Select that profile here.", "Request a private match for an open job.", "Recruiter computes encrypted compatibility next."]}
+        />
       </section>
 
       <Ledger title="Open Job Feed">
