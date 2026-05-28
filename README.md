@@ -4,6 +4,31 @@ BlindHire is a privacy-first hiring application where candidates are evaluated o
 
 The goal is simple: help companies hire talent, not bias. Recruiters can review anonymous profiles, verified proof counts, encrypted salary compatibility, and private match scores while candidates keep sensitive identity data hidden until they choose to reveal it.
 
+## Live Production Build
+
+BlindHire is deployed and working as a production-ready WaveHack testnet application.
+
+- Production app: https://blindhire-iota.vercel.app
+- Network: Ethereum Sepolia
+- Contract: `0xe0c76dA5c18F3d4d537dC94411E65713e900c376`
+- Current flow: candidate profile, proof upload, assessment, verifier attestation, recruiter job, private match, shortlist, reveal request, and candidate-approved identity reveal.
+- Status: frontend, metadata pinning route, CoFHE browser encryption, contract reads/writes, event ledgers, and Sepolia smoke checks are working end to end.
+
+The app is production-ready for testnet launch and judging. Before a mainnet launch, rotate any exposed keys, complete an external smart-contract audit, and redeploy with fresh production credentials.
+
+## Problem BlindHire Solves
+
+Traditional hiring asks candidates to reveal identity too early. A resume usually exposes name, location, university, age signals, gender signals, profile photo, work history, contact details, and salary expectations before the recruiter has evaluated actual capability. That creates bias, privacy risk, and unfair filtering.
+
+BlindHire changes the order:
+
+1. Evaluate skills first.
+2. Match on encrypted salary and experience signals.
+3. Verify real work through attestations.
+4. Reveal identity only after mutual interest.
+
+This creates a fairer hiring pipeline for candidates and a cleaner signal pipeline for recruiters.
+
 ## What The App Does
 
 BlindHire turns the normal hiring flow from identity-first into skill-first.
@@ -18,6 +43,31 @@ BlindHire turns the normal hiring flow from identity-first into skill-first.
 - Candidates approve the reveal only when they are ready.
 
 Nothing important about matching is only a frontend trick. Candidate private values, job thresholds, proof status, matches, shortlists, reveal requests, and reveal approvals all flow through the smart contract.
+
+## What Is Actually On-Chain
+
+BlindHire is not a mock UI. The core workflow is backed by the deployed smart contract.
+
+- Candidate records, active state, anonymous metadata URI, identity commitment, proof counts, assessment counts, and reputation score.
+- Encrypted candidate matching values: skill score, experience years, salary minimum, and salary maximum.
+- Job records, open/closed state, public metadata URI, encrypted requirements, and encrypted budget range.
+- Skill proof hashes, proof metadata URI, verifier address, and verification state.
+- Assessment hashes, assessment metadata URI, verifier address, and verification state.
+- Reputation signal hashes, issuer address, metadata URI, and weighted score.
+- Candidate-created match requests.
+- Encrypted match score, encrypted salary overlap flag, encrypted qualified flag, shortlist state, reveal request state, and reveal approval state.
+- Trusted verifier governance and trusted AI/oracle registry.
+
+Off-chain storage is used only for metadata content such as profile text, proof descriptions, job descriptions, and reveal identity documents. That metadata is pinned through the server-side Pinata route or referenced through permanent IPFS/Arweave URIs.
+
+## What Makes It Different
+
+- Privacy-first from the first screen: identity is not required for initial evaluation.
+- Encrypted matching: salary, experience, skill score, job thresholds, and AI signal are encrypted before contract interaction.
+- Candidate consent: recruiters cannot reveal identity by themselves.
+- Verifiable evidence: proofs, assessments, reputation, and verifier actions are anchored on-chain.
+- Real role flow: candidate, recruiter, verifier, and match-room pages are connected to the same deployed contract.
+- No dummy production path: the UI now reads live contract state and user forms collect real input instead of hardcoded demo identities.
 
 ## Why It Matters
 
@@ -80,7 +130,7 @@ Today this is represented as an encrypted input to the match function, with an o
    The selected identity metadata becomes visible on the match record.
 
 ## Current Features
- 
+
 - Wallet connection and chain switching for Sepolia-compatible networks.
 - CoFHE encryption from the browser for candidate/job/match inputs.
 - On-chain candidate profile creation.
@@ -108,6 +158,7 @@ Today this is represented as an encrypted input to the match function, with an o
 ## App Pages
 
 - `/` - animated product entry
+- `/dashboard` - wallet-first production workspace and live chain summary
 - `/candidate` - candidate dashboard
 - `/candidate/profile` - create encrypted anonymous profile
 - `/candidate/proofs` - upload candidate skill proofs
@@ -241,19 +292,6 @@ Smoke test a deployed Sepolia contract:
 npm run smoke:sepolia
 ```
 
-## Demo Flow
-
-1. Candidate connects wallet and creates an anonymous encrypted profile.
-2. Candidate uploads a skill proof.
-3. Verifier verifies the proof.
-4. Recruiter posts a job with encrypted requirements.
-5. Candidate requests a private match for that job.
-6. Recruiter computes a private match.
-7. Recruiter decrypts the authorized match result locally.
-8. Recruiter shortlists and requests identity reveal.
-9. Candidate approves reveal.
-10. Recruiter sees the selected identity metadata.
-
 ## Wave 5 Production Readiness
 
 Wave 5 is implemented in this repo.
@@ -269,15 +307,16 @@ Wave 5 is implemented in this repo.
 - Anonymous assessments, verifier governance, reputation history, candidate job discovery, one-click match requests, and update/archive flows are implemented.
 - Security review notes live in `SECURITY_REVIEW.md`.
 
-Final Wave 5 verification completed on May 27, 2026:
+Final Wave 5 verification completed on May 28, 2026:
 
 - `npm run validate:prod` passed: contract compile, Hardhat tests, TypeScript, ESLint, and Next production build.
 - `npm run smoke:sepolia` passed against `0xe0c76dA5c18F3d4d537dC94411E65713e900c376` with exact bytecode parity.
+- Production Vercel deployment completed and is aliased at `https://blindhire-iota.vercel.app`.
+- Browser verification passed on production at mobile and desktop sizes for `/`, `/dashboard`, candidate profile, recruiter jobs, recruiter matching, matches, and verifier pages.
 - Sepolia demo seed completed one full on-chain flow: candidate, proof, assessment, reputation signal, job, match request, oracle match, shortlist, reveal request, and candidate reveal approval.
 - Curl checks returned `200` for all local production routes: `/`, candidate pages, recruiter pages, `/matches`, `/verifier`, and `/roadmap`.
 - Raw Sepolia RPC curl checks returned `candidateCount=1`, `jobCount=1`, and `matchCount=1` for the current contract.
 
- asds
 ## Long-Term Ideas
 
 - Blind salary negotiation where both sides prove salary overlap without revealing exact numbers.
